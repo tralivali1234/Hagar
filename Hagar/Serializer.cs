@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO.Pipelines;
+using Hagar.Orleans.Serialization;
 
 namespace Hagar
 {
@@ -6,72 +8,38 @@ namespace Hagar
     public interface ICopyContext { }
     public interface IDeserializationContext { }
 
-    public interface ISerializer
+    public class Ser
     {
-        /*ref T Copy<T>(ref T src, ICopyContext context);
-        void Serialize<T>(ref T src, ISerializationContext context);
-        ref T Deserialize<T>(IDeserializationContext context);*/
-        ref T Copy<T>(ref T input, ICopyContext context) where T : struct;
-        T Copy<T>(T input, ICopyContext context) where T : class;
-        void Serialize<T>(ref T input, ISerializationContext context) where T : struct;
-        void Serialize<T>(T input, ISerializationContext context) where T : class;
-        void Deserialize<T>(out T result, IDeserializationContext context) where T : struct;
-        T Deserialize<T>(IDeserializationContext context) where T : class;
-    }
-
-    public class Serializer : ISerializer
-
-    {
-        public ref T Copy<T>(ref T input, ICopyContext context) where T : struct
+        public void Write()
         {
-            throw new NotImplementedException();
-        }
-
-        public T Copy<T>(T input, ICopyContext context) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Serialize<T>(ref T input, ISerializationContext context) where T : struct
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Serialize<T>(T input, ISerializationContext context) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Deserialize<T>(out T result, IDeserializationContext context) where T : struct
-        {
-            throw new NotImplementedException();
-        }
-
-        public T Deserialize<T>(IDeserializationContext context) where T : class
-        {
-            throw new NotImplementedException();
+            var factory = new PipeFactory();
+            var pipe = factory.Create();
+            var writer = pipe.Writer;
+            var buffer = writer.Alloc(0);
+            buffer.Ensure(5);
         }
     }
-
-    /// <summary>
-    /// Codec for operating with primitive types using the <see cref="WireCodec"/>.
-    /// Operates on types such as int, bool, string, objects, and fields.
-    /// </summary>
-    public class PrimitiveTypeCodec
-    {
-
-    }
-
+    
     public static class WireProtocol
     {
+        public struct Field
+        {
+            private int fieldId;
+            public Tag Tag;
+            public Span<byte> FieldData;
+        }
+
         public struct Tag
         {
-            private readonly byte tag;
+            private byte tag;
 
             public Tag(byte tag)
             {
                 this.tag = tag;
             }
+
+            public static implicit operator Tag(byte tag) => new Tag(tag);
+            public static implicit operator byte(Tag tag) => tag.tag;
 
             /// <summary>
             /// Returns the wire type of the data following this tag.
@@ -84,7 +52,11 @@ namespace Hagar
             /// <remarks>
             /// If this value is <see langword="false"/>, this tag and field id must be followed by a type specification.
             /// </remarks>
-            public SchemaType SchemaType => (SchemaType)(this.tag & SchemaTypeMask);
+            public SchemaType SchemaType
+            {
+                get => (SchemaType) (this.tag & SchemaTypeMask);
+                set => this.tag |= (byte)((byte) value & SchemaTypeMask);
+            }
 
             /// <summary>
             /// Returns <see langword="true"/> if the <see cref="SchemaType"/> is valid, <see langword="false"/> otherwise.
@@ -113,7 +85,8 @@ namespace Hagar
             /// </summary>
             public bool HasExtendedFieldId => (this.tag & FieldIdCompleteMask) == FieldIdCompleteMask && this.WireType != WireType.Extended;
         }
-        
+
+        // [W W W] [S S] [F F F]
         public const byte WireTypeMask = 0b1110_0000; // The first 3 bits are dedicated to the wire type.
         public const byte SchemaTypeMask = 0b0001_1000; // The next 2 bits are dedicated to the schema type specifier, if the schema type is expected.
         public const byte FieldIdMask = 0b000_0111; // The final 3 bits are used for the field id, if the field id is expected.
@@ -125,17 +98,15 @@ namespace Hagar
         public enum WireType : byte
         {
             VarInt = 0b000 << 5, // Followed by a VarInt
-            TagDelimited = 0b001 << 5, // Followed by field specifiers, then an Extended tag with EndTagDelimited as the control value.
+            TagDelimited = 0b001 << 5, // Followed by field specifiers, then an Extended tag with EndTagDelimited as the extended wire type.
             LengthPrefixed = 0b010 << 5, // Followed by VarInt length representing the number of bytes which follow.
             Fixed32 = 0b011 << 5, // Followed by 4 bytes
             Fixed64 = 0b100 << 5, // Followed by 8 bytes
             Fixed128 = 0b101 << 5, // Followed by 16 bytes
-            // 1100 0000 is reserved for future use.
+            Reference = 0b110 << 5, // Followed by a VarInt reference to a previously defined object. Note that the SchemaType and type specification must still be included.
             Extended = 0b111 << 5, // This is a control tag. The schema type and embedded field id are invalid. The remaining 5 bits are used for control information.
         }
-
-        // [W W W] [S S] [F F F]
-
+        
         public enum SchemaType : byte
         {
             Expected = 0b00 << 3, // This value has the type expected by the current schema.
@@ -151,13 +122,25 @@ namespace Hagar
     }
 
     /// <summary>
+    /// Codec for operating with primitive types using the <see cref="WireCodec"/>.
+    /// Operates on types such as int, bool, string, objects, and fields.
+    /// </summary>
+    public class PrimitiveTypeCodec
+    {
+
+    }
+
+    /// <summary>
     /// Codec for operating with the wire format.
     /// Operates on format-specific types, such as variable-length integers, length-prefixed data, fixed-width data, and tag-delimited data.
     /// </summary>
-    public class WireCodec
+    public static class WireEncoder
     {
-        void VarInt(Span<byte> data) { }
-        void StartObject() { }
-        void EndObject() { }
+        public static void Write(this Writer writer, int fieldId, int val)
+        {
+            byte tag = 0;
+            tag |= (byte) WireProtocol.WireType.Fixed32;
+
+        }
     }
 }
