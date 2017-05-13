@@ -24,10 +24,11 @@ namespace TestApp
             SerializeMyType(writer, context, expected);
             writer.WriteEndObject();
 
+            Console.WriteLine($"Size: {writer.CurrentOffset} bytes");
             var reader = new Reader(writer.ToBytes());
             var deserializationContext = new SerializationContext();
             var initialHeader = reader.ReadFieldHeader(context);
-            Console.WriteLine($"Initial header: {initialHeader}");
+            Console.WriteLine(initialHeader);
             var actual = new SubType();
             DeserializeMyType(reader, deserializationContext, actual);
         }
@@ -35,6 +36,7 @@ namespace TestApp
         static void SerializeBaseType(Writer writer, SerializationContext context, BaseType obj)
         {
             writer.WriteFieldHeader(context, 0, typeof(string), obj.BaseTypeString.GetType(), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(context, 2, typeof(float), typeof(decimal), WireType.Fixed32);
             // write the feild data
         }
 
@@ -52,17 +54,17 @@ namespace TestApp
             while (true)
             {
                 var header = reader.ReadFieldHeader(context);
-                Console.WriteLine($"BASE " + header);
+                Console.WriteLine(header);
                 if (header.IsEndBaseOrEndObject) break;
                 switch (header.FieldId)
                 {
                     case 0:
                         var type = reader.ReadType(context, header.SchemaType, typeof(string));
-                        Console.WriteLine($"BASE Reading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                        Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                     default:
                         type = reader.ReadType(context, header.SchemaType, typeof(long));
-                        Console.WriteLine($"Reading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                        Console.WriteLine($"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                 }
             }
@@ -82,15 +84,15 @@ namespace TestApp
                 {
                     case 0:
                         type = reader.ReadType(context, header.SchemaType, typeof(string));
-                        Console.WriteLine($"Reading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                        Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                     case 1:
                         type = reader.ReadType(context, header.SchemaType, typeof(long));
-                        Console.WriteLine($"Reading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                        Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                     default:
                         type = reader.ReadType(context, header.SchemaType, null);
-                        Console.WriteLine($"Reading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                        Console.WriteLine($"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                 }
             }
