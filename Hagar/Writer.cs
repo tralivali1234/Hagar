@@ -276,15 +276,7 @@
             {
                 Write(id.ToByteArray());
             }
-
-            // Back-references
-
-            internal void WriteReference(int offset)
-            {
-                Trace("Writing a reference to the object at offset {0}", offset);
-                ab.Append((byte)SerializationTokenType.Reference);
-                ab.Append(offset);
-            }
+            
 
             private StreamWriter trace;
 

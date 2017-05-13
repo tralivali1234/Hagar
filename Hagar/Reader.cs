@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using static Hagar.WireProtocol;
 
 namespace Hagar
 {
@@ -192,6 +191,15 @@ namespace Hagar
             safeToUse = true;
             offset = 0;
             return temp;
+        }
+        
+        public byte ReadByte()
+        {
+            int offset;
+            var buff = CheckLength(sizeof(byte), out offset);
+            var val = buff[offset];
+            Trace("--Read byte {0}", val);
+            return val;
         }
 
         /// <summary> Read an <c>Int32</c> value from the stream. </summary>
@@ -388,25 +396,7 @@ namespace Hagar
             Buffer.BlockCopy(buff, offset, array, 0, n);
             Trace("--Read block of {0} bytes", n);
         }
-        
-        internal Tag PeekToken()
-        {
-            if (currentOffset == currentSegment.Count + currentSegment.Offset)
-                StartNextSegment();
 
-            return (Tag)currentBuffer[currentOffset];
-        }
-
-        /// <summary> Read a <c>SerializationTokenType</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
-        internal Tag ReadToken()
-        {
-            int offset;
-            var buff = CheckLength(1, out offset);
-            Trace("--Read token {0}", (Tag)buff[offset]);
-            return (Tag)buff[offset];
-        }
-        
         private StreamWriter trace;
 
         [Conditional("TRACE_SERIALIZATION")]
