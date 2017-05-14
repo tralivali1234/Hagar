@@ -142,7 +142,7 @@ namespace Hagar
             else
             {
                 EnsureRoomFor(1);
-                int n = Math.Min(array.Length, (int) (bufferSize - currentOffset));
+                int n = Math.Min(array.Length, (int)(bufferSize - currentOffset));
                 Array.Copy(array, 0, currentBuffer, currentOffset, n);
                 currentOffset += n;
                 int r = array.Length - n;
@@ -345,6 +345,15 @@ namespace Hagar
             currentBuffer[currentOffset++] = b;
             return this;
         }
+
+        public ByteArrayBuilder Append(Span<byte> span)
+        {
+            var length = span.Length;
+            EnsureRoomFor(length);
+            for (var count = 0; count < length; ++count) currentBuffer[currentOffset++] = span[count];
+            return this;
+        }
+
         public ByteArrayBuilder Append(sbyte b)
         {
             EnsureRoomFor(1);

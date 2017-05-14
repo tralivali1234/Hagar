@@ -36,7 +36,7 @@ namespace TestApp
         static void SerializeBaseType(Writer writer, SerializationContext context, BaseType obj)
         {
             writer.WriteFieldHeader(context, 0, typeof(string), obj.BaseTypeString.GetType(), WireType.LengthPrefixed);
-            writer.WriteFieldHeader(context, 2, typeof(float), typeof(decimal), WireType.Fixed32);
+            writer.WriteFieldHeader(context, 2, typeof(float), typeof(decimal), WireType.Fixed128);
             // write the feild data
         }
 
@@ -46,7 +46,7 @@ namespace TestApp
             writer.WriteEndBase(); // the base object is complete.
             writer.WriteFieldHeader(context, 0, typeof(string), obj.String.GetType(), WireType.LengthPrefixed);
             writer.WriteFieldHeader(context, 1, typeof(int), obj.Int.GetType(), WireType.VarInt);
-            writer.WriteFieldHeader(context, 2, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
+            writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
         }
 
         static void DeserializeBaseType(Reader reader, SerializationContext context, BaseType obj)

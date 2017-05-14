@@ -97,6 +97,12 @@
                 Trace("--Wrote byte {0}", b);
                 ab.Append(b);
             }
+            
+            public void Write(Span<byte> span)
+            {
+                Trace("--Wrote span of length {0}", span.Length);
+                ab.Append(span);
+            }
 
             /// <summary> Write a <c>float</c> value to the stream. </summary>
             public void Write(float f)
