@@ -161,6 +161,142 @@ namespace Hagar
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }
         }
+        
+        public static void WriteInt32Field(this Writer writer, uint fieldId, int value)
+        {
+            if (value > 1 << 20 || -value > 1 << 20)
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.Fixed32
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.Write(value);
+            }
+            else
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.VarInt
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.WriteVarInt(value);
+            }
+        }
+
+        public static void WriteUInt32Field(this Writer writer, uint fieldId, uint value)
+        {
+            if (value > 1 << 20)
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.Fixed32
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.Write(value);
+            }
+            else
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.VarInt
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.WriteVarInt(value);
+            }
+        }
+
+        public static void WriteInt64Field(this Writer writer, uint fieldId, long value)
+        {
+            if (value <= int.MaxValue && value >= int.MinValue)
+            {
+                writer.WriteInt32Field(fieldId, (int) value);
+            }
+            else if (value > 1 << 41 || -value > 1 << 41)
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.Fixed64
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.Write(value);
+            }
+            else
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.VarInt
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.WriteVarInt(value);
+            }
+        }
+
+        public static void WriteUInt64Field(this Writer writer, uint fieldId, ulong value)
+        {
+            if (value <= int.MaxValue)
+            {
+                writer.WriteUInt32Field(fieldId, (uint)value);
+            }
+            else if (value > 1 << 41)
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.Fixed64
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.Write(value);
+            }
+            else
+            {
+                var field = new Field
+                {
+                    FieldId = fieldId,
+                    SchemaType = SchemaType.Expected,
+                    WireType = WireType.VarInt
+                };
+
+                writer.Write(field.Tag);
+                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+
+                writer.WriteVarInt(value);
+            }
+        }
     }
 }
 
