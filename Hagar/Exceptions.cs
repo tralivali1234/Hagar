@@ -38,6 +38,13 @@ namespace Hagar.Exceptions
         }
     }
 
+    public class FieldTypeInvalidException : HagarException
+    {
+        public FieldTypeInvalidException() : base("Attempted to access the schema type from a tag which cannot have a schema type.")
+        {
+        }
+    }
+
     public class ExtendedWireTypeInvalidException : HagarException
     {
         public ExtendedWireTypeInvalidException() : base(

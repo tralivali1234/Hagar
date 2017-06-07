@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
+using System.Collections;
+using System.Collections.Generic;
 using Hagar;
+using Hagar.Exceptions;
 using Hagar.Orleans.Serialization;
 using Hagar.WireProtocol;
 
@@ -37,7 +39,7 @@ namespace TestApp
         {
             writer.WriteFieldHeader(context, 0, typeof(string), obj.BaseTypeString.GetType(), WireType.LengthPrefixed);
             writer.WriteFieldHeader(context, 2, typeof(float), typeof(decimal), WireType.Fixed128);
-            // write the feild data
+            // write the field data
         }
 
         static void SerializeMyType(Writer writer, SerializationContext context, SubType obj)
@@ -47,8 +49,35 @@ namespace TestApp
             writer.WriteFieldHeader(context, 0, typeof(string), obj.String.GetType(), WireType.LengthPrefixed);
             writer.WriteFieldHeader(context, 1, typeof(int), obj.Int.GetType(), WireType.VarInt);
             writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
+            writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);
         }
 
+        public interface IHagarSerializer
+        {
+            void Serialize(Writer writer, SerializationContext context, uint fieldId, object instance, Type expectedType);
+            object Deserialize(Reader reader, SerializationContext context, Field field);
+        }
+
+        public interface IReferenceSerializer<T>
+        {
+
+            void Serialize(Writer writer, SerializationContext context);
+        }
+
+        public interface IObjectSerializer<T>
+        {
+            // Serialize each field defined within T. Do not serialize base fields.
+            void Serialize(Writer writer, SerializationContext context, T instance);
+
+            void Deserialize(Reader reader, SerializationContext context, ref T instance);
+        }
+
+        public interface IValueSerializer<T>
+        {
+            void Serialize(Writer writer, SerializationContext context, ref T instance);
+            void Deserialize(Reader reader, SerializationContext context, ref T instance);
+        }
+        
         static void DeserializeBaseType(Reader reader, SerializationContext context, BaseType obj)
         {
             while (true)
@@ -59,13 +88,19 @@ namespace TestApp
                 switch (header.FieldId)
                 {
                     case 0:
-                        var type = reader.ReadType(context, header.SchemaType, typeof(string));
-                        Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                    {
+                        var type = header.FieldType ?? typeof(string);
+                        Console.WriteLine(
+                            $"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
+                    }
                     default:
-                        type = reader.ReadType(context, header.SchemaType, typeof(long));
-                        Console.WriteLine($"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
+                    {
+                        var type = header.FieldType;
+                        Console.WriteLine(
+                            $"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
+                    }
                 }
             }
         }
@@ -83,15 +118,15 @@ namespace TestApp
                 switch (header.FieldId)
                 {
                     case 0:
-                        type = reader.ReadType(context, header.SchemaType, typeof(string));
+                        type = header.FieldType ?? typeof(string);
                         Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                     case 1:
-                        type = reader.ReadType(context, header.SchemaType, typeof(long));
+                        type = header.FieldType ?? typeof(long);
                         Console.WriteLine($"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                     default:
-                        type = reader.ReadType(context, header.SchemaType, null);
+                        type = header.FieldType;
                         Console.WriteLine($"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
                         break;
                 }
