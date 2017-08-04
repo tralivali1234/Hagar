@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using Hagar.Codec;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -23,11 +24,13 @@ namespace TestApp
 
             var stringCodec = new StringCodec();
             var intCodec = new IntegerCodec();
-            var baseTypeSerializer = new BaseTypeSerializer(stringCodec);
-            var serializer = new SubTypeSerializer(baseTypeSerializer, stringCodec, intCodec);
+            var baseTypeSerializer = new BaseTypeSerializer<StringCodec>(stringCodec);
+            var serializer =
+                new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>(baseTypeSerializer,
+                    stringCodec, intCodec);
 
             writer.WriteStartObject(context, 0, typeof(SubType), typeof(SubType));
-            serializer.SerializeMyType(writer, context, expected);
+            serializer.Serialize(writer, context, expected);
             writer.WriteEndObject();
 
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes");
@@ -36,27 +39,27 @@ namespace TestApp
             var initialHeader = reader.ReadFieldHeader(context);
             Console.WriteLine(initialHeader);
             var actual = new SubType();
-            serializer.DeserializeMyType(reader, deserializationContext, actual);
+            serializer.Deserialize(reader, deserializationContext, actual);
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
         }
 
 
-        public class BaseTypeSerializer
+        public class BaseTypeSerializer<TStringCodec> : IObjectSerializer<BaseType> where TStringCodec : IValueCodec<string>
         {
-            private readonly IValueCodec<string> stringCodec;
+            private readonly TStringCodec stringCodec;
 
-            public BaseTypeSerializer(IValueCodec<string> stringCodec)
+            public BaseTypeSerializer(TStringCodec stringCodec)
             {
                 this.stringCodec = stringCodec;
             }
 
-            public void SerializeBaseType(Writer writer, SerializationContext context, BaseType obj)
+            public void Serialize(Writer writer, SerializationContext context, BaseType obj)
             {
                 stringCodec.WriteField(writer, context, 0, typeof(string), obj.BaseTypeString);
             }
 
-            public void DeserializeBaseType(Reader reader, SerializationContext context, BaseType obj)
+            public void Deserialize(Reader reader, SerializationContext context, BaseType obj)
             {
                 while (true)
                 {
@@ -85,31 +88,37 @@ namespace TestApp
             }
         }
 
-        public class SubTypeSerializer
+        public interface IObjectSerializer<T> where T : class
         {
-            private readonly BaseTypeSerializer baseTypeSerializer;
-            private readonly IValueCodec<string> stringCodec;
-            private readonly IValueCodec<int> intCodec;
+            void Serialize(Writer writer, SerializationContext context, T value);
+            void Deserialize(Reader reader, SerializationContext context, T value);
+        }
 
-            public SubTypeSerializer(BaseTypeSerializer baseTypeSerializer, IValueCodec<string> stringCodec, IValueCodec<int> intCodec)
+        public class SubTypeSerializer<TBaseSerializer, TStringCodec, TIntCodec> : IObjectSerializer<SubType> where TBaseSerializer : IObjectSerializer<BaseType> where TStringCodec : IValueCodec<string> where TIntCodec : IValueCodec<int>
+        {
+            private readonly TBaseSerializer baseTypeSerializer;
+            private readonly TStringCodec stringCodec;
+            private readonly TIntCodec intCodec;
+
+            public SubTypeSerializer(TBaseSerializer baseTypeSerializer, TStringCodec stringCodec, TIntCodec intCodec)
             {
                 this.baseTypeSerializer = baseTypeSerializer;
                 this.stringCodec = stringCodec;
                 this.intCodec = intCodec;
             }
 
-            public void SerializeMyType(Writer writer, SerializationContext context, SubType obj)
+            public void Serialize(Writer writer, SerializationContext context, SubType obj)
             {
-                this.baseTypeSerializer.SerializeBaseType(writer, context, obj);
+                this.baseTypeSerializer.Serialize(writer, context, obj);
                 writer.WriteEndBase(); // the base object is complete.
                 this.stringCodec.WriteField(writer, context, 0, typeof(string), obj.String);
                 this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
                 writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
                 writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);
             }
-            public void DeserializeMyType(Reader reader, SerializationContext context, SubType obj)
+            public void Deserialize(Reader reader, SerializationContext context, SubType obj)
             {
-                this.baseTypeSerializer.DeserializeBaseType(reader, context, obj);
+                this.baseTypeSerializer.Deserialize(reader, context, obj);
                 while (true)
                 {
                     var header = reader.ReadFieldHeader(context);
