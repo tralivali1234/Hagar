@@ -29,20 +29,4 @@ namespace Hagar.Codec
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
     }
-
-    public class GuidCodec : IValueCodec<Guid>
-    {
-        public void WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType, Guid value)
-        {
-            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(Guid), WireType.Fixed128);
-            writer.Write(value);
-        }
-
-        public Guid ReadValue(Reader reader, SerializationContext context, Field field)
-        {
-            var bytes = new byte[16];
-            reader.ReadByteArray(bytes, 0, 16);
-            return new Guid(bytes);
-        }
-    }
 }
