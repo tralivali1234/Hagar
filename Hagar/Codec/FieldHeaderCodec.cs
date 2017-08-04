@@ -8,9 +8,8 @@ namespace Hagar.Codec
 {
     /// <summary>
     /// Codec for operating with the wire format.
-    /// Operates on format-specific types, such as variable-length integers, length-prefixed data, fixed-width data, and tag-delimited data.
     /// </summary>
-    public static class WireCodec
+    public static class FieldHeaderCodec
     {
         public static void WriteFieldHeader(this Writer writer, SerializationContext context, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
