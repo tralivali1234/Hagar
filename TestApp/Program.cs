@@ -53,11 +53,7 @@ namespace TestApp
 
             public void SerializeBaseType(Writer writer, SerializationContext context, BaseType obj)
             {
-                //writer.WriteFieldHeader(context, 0, typeof(string), obj.BaseTypeString.GetType(), WireType.LengthPrefixed);
-                var codec = stringCodec;
-                codec.WriteField(writer, context, 0, typeof(string), obj.BaseTypeString);
-                writer.WriteFieldHeader(context, 2, typeof(float), typeof(decimal), WireType.Fixed128);
-                // write the field data
+                stringCodec.WriteField(writer, context, 0, typeof(string), obj.BaseTypeString);
             }
 
             public void DeserializeBaseType(Reader reader, SerializationContext context, BaseType obj)
