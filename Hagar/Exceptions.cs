@@ -1,7 +1,6 @@
 ﻿using System;
 
-
-namespace Hagar.Exceptions
+namespace Hagar
 {
     public static class ExceptionHelper
     {
@@ -49,6 +48,17 @@ namespace Hagar.Exceptions
     {
         public ExtendedWireTypeInvalidException() : base(
             "Attempted to access the extended wire type from a tag which does not have an extended wire type.")
+        {
+        }
+    }
+
+    public class UnsupportedWireTypeException : HagarException
+    {
+        public UnsupportedWireTypeException()
+        {
+        }
+
+        public UnsupportedWireTypeException(string message) : base(message)
         {
         }
     }

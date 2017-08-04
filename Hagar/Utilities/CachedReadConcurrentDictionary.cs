@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-namespace Hagar
+namespace Hagar.Utilities
 {
     /// <summary>
     /// A thread-safe dictionary for read-heavy workloads.
@@ -147,7 +147,7 @@ namespace Hagar
                 return value;
 
             value = this.dictionary.GetOrAdd(key, valueFactory);
-            InvalidateCache();
+            this.InvalidateCache();
 
             return value;
         }

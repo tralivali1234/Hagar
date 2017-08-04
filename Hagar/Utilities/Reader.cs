@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Hagar
+namespace Hagar.Utilities
 {
     /// <summary>
     /// Reader for Orleans binary token streams
@@ -44,7 +44,7 @@ namespace Hagar
         public Reader(IList<ArraySegment<byte>> buffs)
         {
             this.Reset(buffs);
-            Trace("Starting new stream reader");
+            this.Trace("Starting new stream reader");
         }
 
         /// <summary>
@@ -53,22 +53,22 @@ namespace Hagar
         /// <param name="buffs">The underlying buffers.</param>
         public void Reset(IList<ArraySegment<byte>> buffs)
         {
-            buffers = buffs;
-            totalProcessedBytes = 0;
-            currentSegmentIndex = 0;
-            InitializeCurrentSegment(0);
-            totalLength = buffs.Sum(b => b.Count);
-            buffersCount = buffs.Count;
+            this.buffers = buffs;
+            this.totalProcessedBytes = 0;
+            this.currentSegmentIndex = 0;
+            this.InitializeCurrentSegment(0);
+            this.totalLength = buffs.Sum(b => b.Count);
+            this.buffersCount = buffs.Count;
         }
 
         private void InitializeCurrentSegment(int segmentIndex)
         {
-            currentSegment = buffers[segmentIndex];
-            currentBuffer = currentSegment.Array;
-            currentOffset = currentSegment.Offset;
-            currentSegmentOffset = currentOffset;
-            currentSegmentCount = currentSegment.Count;
-            currentSegmentOffsetPlusCount = currentSegmentOffset + currentSegmentCount;
+            this.currentSegment = this.buffers[segmentIndex];
+            this.currentBuffer = this.currentSegment.Array;
+            this.currentOffset = this.currentSegment.Offset;
+            this.currentSegmentOffset = this.currentOffset;
+            this.currentSegmentCount = this.currentSegment.Count;
+            this.currentSegmentOffsetPlusCount = this.currentSegmentOffset + this.currentSegmentCount;
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Hagar
         }
 
         /// <summary> Current read position in the stream. </summary>
-        public int CurrentPosition => currentOffset + totalProcessedBytes - currentSegmentOffset;
+        public int CurrentPosition => this.currentOffset + this.totalProcessedBytes - this.currentSegmentOffset;
 
         /// <summary>
         /// Gets the total length.
@@ -99,19 +99,19 @@ namespace Hagar
 
         private void StartNextSegment()
         {
-            totalProcessedBytes += currentSegment.Count;
-            currentSegmentIndex++;
-            if (currentSegmentIndex < buffersCount)
+            this.totalProcessedBytes += this.currentSegment.Count;
+            this.currentSegmentIndex++;
+            if (this.currentSegmentIndex < this.buffersCount)
             {
-                InitializeCurrentSegment(currentSegmentIndex);
+                this.InitializeCurrentSegment(this.currentSegmentIndex);
             }
             else
             {
-                currentSegment = emptySegment;
-                currentBuffer = null;
-                currentOffset = 0;
-                currentSegmentOffset = 0;
-                currentSegmentOffsetPlusCount = currentSegmentOffset + currentSegmentCount;
+                this.currentSegment = emptySegment;
+                this.currentBuffer = null;
+                this.currentOffset = 0;
+                this.currentSegmentOffset = 0;
+                this.currentSegmentOffsetPlusCount = this.currentSegmentOffset + this.currentSegmentCount;
             }
         }
 
@@ -119,12 +119,12 @@ namespace Hagar
         {
             bool ignore;
             byte[] res;
-            if (TryCheckLengthFast(n, out res, out offset, out ignore))
+            if (this.TryCheckLengthFast(n, out res, out offset, out ignore))
             {
                 return res;
             }
 
-            return CheckLength(n, out offset, out ignore);
+            return this.CheckLength(n, out offset, out ignore);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -133,12 +133,12 @@ namespace Hagar
             safeToUse = false;
             res = null;
             offset = 0;
-            var nextOffset = currentOffset + n;
-            if (nextOffset <= currentSegmentOffsetPlusCount)
+            var nextOffset = this.currentOffset + n;
+            if (nextOffset <= this.currentSegmentOffsetPlusCount)
             {
-                offset = currentOffset;
-                currentOffset = nextOffset;
-                res = currentBuffer;
+                offset = this.currentOffset;
+                this.currentOffset = nextOffset;
+                res = this.currentBuffer;
                 return true;
             }
 
@@ -149,22 +149,22 @@ namespace Hagar
         {
             safeToUse = false;
             offset = 0;
-            if (currentOffset == currentSegmentOffsetPlusCount)
+            if (this.currentOffset == this.currentSegmentOffsetPlusCount)
             {
-                StartNextSegment();
+                this.StartNextSegment();
             }
 
             byte[] res;
-            if (TryCheckLengthFast(n, out res, out offset, out safeToUse))
+            if (this.TryCheckLengthFast(n, out res, out offset, out safeToUse))
             {
                 return res;
             }
 
-            if ((CurrentPosition + n > totalLength))
+            if ((this.CurrentPosition + n > this.totalLength))
             {
                 throw new SerializationException(
                     String.Format("Attempt to read past the end of the input stream: CurrentPosition={0}, n={1}, totalLength={2}",
-                                  CurrentPosition, n, totalLength));
+                                  this.CurrentPosition, n, this.totalLength));
             }
 
             var temp = new byte[n];
@@ -172,20 +172,20 @@ namespace Hagar
 
             while (i < n)
             {
-                var segmentOffsetPlusCount = currentSegmentOffsetPlusCount;
-                var bytesFromThisBuffer = Math.Min((int) (segmentOffsetPlusCount - currentOffset), n - i);
-                Buffer.BlockCopy(currentBuffer, currentOffset, temp, i, bytesFromThisBuffer);
+                var segmentOffsetPlusCount = this.currentSegmentOffsetPlusCount;
+                var bytesFromThisBuffer = Math.Min((int) (segmentOffsetPlusCount - this.currentOffset), n - i);
+                Buffer.BlockCopy(this.currentBuffer, this.currentOffset, temp, i, bytesFromThisBuffer);
                 i += bytesFromThisBuffer;
-                currentOffset += bytesFromThisBuffer;
-                if (currentOffset >= segmentOffsetPlusCount)
+                this.currentOffset += bytesFromThisBuffer;
+                if (this.currentOffset >= segmentOffsetPlusCount)
                 {
-                    if (currentSegmentIndex >= buffersCount)
+                    if (this.currentSegmentIndex >= this.buffersCount)
                     {
                         throw new SerializationException(
-                            String.Format("Attempt to read past buffers.Count: currentSegmentIndex={0}, buffers.Count={1}.", currentSegmentIndex, buffers.Count));
+                            String.Format("Attempt to read past buffers.Count: currentSegmentIndex={0}, buffers.Count={1}.", this.currentSegmentIndex, this.buffers.Count));
                     }
 
-                    StartNextSegment();
+                    this.StartNextSegment();
                 }
             }
             safeToUse = true;
@@ -196,9 +196,9 @@ namespace Hagar
         public byte ReadByte()
         {
             int offset;
-            var buff = CheckLength(sizeof(byte), out offset);
+            var buff = this.CheckLength(sizeof(byte), out offset);
             var val = buff[offset];
-            Trace("--Read byte {0}", val);
+            this.Trace("--Read byte {0}", val);
             return val;
         }
 
@@ -207,9 +207,9 @@ namespace Hagar
         public int ReadInt()
         {
             int offset;
-            var buff = CheckLength(sizeof(int), out offset);
+            var buff = this.CheckLength(sizeof(int), out offset);
             var val = BitConverter.ToInt32(buff, offset);
-            Trace("--Read int {0}", val);
+            this.Trace("--Read int {0}", val);
             return val;
         }
 
@@ -218,9 +218,9 @@ namespace Hagar
         public uint ReadUInt()
         {
             int offset;
-            var buff = CheckLength(sizeof(uint), out offset);
+            var buff = this.CheckLength(sizeof(uint), out offset);
             var val = BitConverter.ToUInt32(buff, offset);
-            Trace("--Read uint {0}", val);
+            this.Trace("--Read uint {0}", val);
             return val;
         }
 
@@ -229,9 +229,9 @@ namespace Hagar
         public short ReadShort()
         {
             int offset;
-            var buff = CheckLength(sizeof(short), out offset);
+            var buff = this.CheckLength(sizeof(short), out offset);
             var val = BitConverter.ToInt16(buff, offset);
-            Trace("--Read short {0}", val);
+            this.Trace("--Read short {0}", val);
             return val;
         }
 
@@ -240,9 +240,9 @@ namespace Hagar
         public ushort ReadUShort()
         {
             int offset;
-            var buff = CheckLength(sizeof(ushort), out offset);
+            var buff = this.CheckLength(sizeof(ushort), out offset);
             var val = BitConverter.ToUInt16(buff, offset);
-            Trace("--Read ushort {0}", val);
+            this.Trace("--Read ushort {0}", val);
             return val;
         }
 
@@ -251,9 +251,9 @@ namespace Hagar
         public long ReadLong()
         {
             int offset;
-            var buff = CheckLength(sizeof(long), out offset);
+            var buff = this.CheckLength(sizeof(long), out offset);
             var val = BitConverter.ToInt64(buff, offset);
-            Trace("--Read long {0}", val);
+            this.Trace("--Read long {0}", val);
             return val;
         }
 
@@ -262,9 +262,9 @@ namespace Hagar
         public ulong ReadULong()
         {
             int offset;
-            var buff = CheckLength(sizeof(ulong), out offset);
+            var buff = this.CheckLength(sizeof(ulong), out offset);
             var val = BitConverter.ToUInt64(buff, offset);
-            Trace("--Read ulong {0}", val);
+            this.Trace("--Read ulong {0}", val);
             return val;
         }
 
@@ -273,9 +273,9 @@ namespace Hagar
         public float ReadFloat()
         {
             int offset;
-            var buff = CheckLength(sizeof(float), out offset);
+            var buff = this.CheckLength(sizeof(float), out offset);
             var val = BitConverter.ToSingle(buff, offset);
-            Trace("--Read float {0}", val);
+            this.Trace("--Read float {0}", val);
             return val;
         }
 
@@ -284,9 +284,9 @@ namespace Hagar
         public double ReadDouble()
         {
             int offset;
-            var buff = CheckLength(sizeof(double), out offset);
+            var buff = this.CheckLength(sizeof(double), out offset);
             var val = BitConverter.ToDouble(buff, offset);
-            Trace("--Read double {0}", val);
+            this.Trace("--Read double {0}", val);
             return val;
         }
 
@@ -295,9 +295,9 @@ namespace Hagar
         public decimal ReadDecimal()
         {
             int offset;
-            var buff = CheckLength(4 * sizeof(int), out offset);
+            var buff = this.CheckLength(4 * sizeof(int), out offset);
             var raw = new int[4];
-            Trace("--Read decimal");
+            this.Trace("--Read decimal");
             var n = offset;
             for (var i = 0; i < 4; i++)
             {
@@ -309,7 +309,7 @@ namespace Hagar
 
         public DateTime ReadDateTime()
         {
-            var n = ReadLong();
+            var n = this.ReadLong();
             return n == 0 ? default(DateTime) : DateTime.FromBinary(n);
         }
 
@@ -317,10 +317,10 @@ namespace Hagar
         /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public string ReadString()
         {
-            var n = ReadInt();
+            var n = this.ReadInt();
             if (n == 0)
             {
-                Trace("--Read empty string");
+                this.Trace("--Read empty string");
                 return String.Empty;
             }
 
@@ -329,11 +329,11 @@ namespace Hagar
             if (-1 != n)
             {
                 int offset;
-                var buff = CheckLength(n, out offset);
+                var buff = this.CheckLength(n, out offset);
                 s = Encoding.UTF8.GetString(buff, offset, n);
             }
 
-            Trace("--Read string '{0}'", s);
+            this.Trace("--Read string '{0}'", s);
             return s;
         }
 
@@ -350,12 +350,12 @@ namespace Hagar
 
             int offset;
             byte[] buff;
-            if (!TryCheckLengthFast(count, out buff, out offset, out safeToUse))
+            if (!this.TryCheckLengthFast(count, out buff, out offset, out safeToUse))
             {
-                buff = CheckLength(count, out offset, out safeToUse);
+                buff = this.CheckLength(count, out offset, out safeToUse);
             }
 
-            Trace("--Read byte array of length {0}", count);
+            this.Trace("--Read byte array of length {0}", count);
             if (!safeToUse)
             {
                 var result = new byte[count];
@@ -380,7 +380,7 @@ namespace Hagar
             }
 
             var buffOffset = 0;
-            var buff = count == 0 ? emptyByteArray : CheckLength(count, out buffOffset);
+            var buff = count == 0 ? emptyByteArray : this.CheckLength(count, out buffOffset);
             Buffer.BlockCopy(buff, buffOffset, destination, offset, count);
         }
         
@@ -392,9 +392,9 @@ namespace Hagar
         public void ReadBlockInto(Array array, int n)
         {
             int offset;
-            var buff = CheckLength(n, out offset);
+            var buff = this.CheckLength(n, out offset);
             Buffer.BlockCopy(buff, offset, array, 0, n);
-            Trace("--Read block of {0} bytes", n);
+            this.Trace("--Read block of {0} bytes", n);
         }
 
         private StreamWriter trace;
@@ -402,15 +402,15 @@ namespace Hagar
         [Conditional("TRACE_SERIALIZATION")]
         private void Trace(string format, params object[] args)
         {
-            if (trace == null)
+            if (this.trace == null)
             {
                 var path = String.Format("d:\\Trace-{0}.{1}.{2}.txt", DateTime.UtcNow.Hour, DateTime.UtcNow.Minute, DateTime.UtcNow.Ticks);
                 Console.WriteLine("Opening trace file at '{0}'", path);
-                trace = File.CreateText(path);
+                this.trace = File.CreateText(path);
             }
-            trace.Write(format, args);
-            trace.WriteLine(" at offset {0}", CurrentPosition);
-            trace.Flush();
+            this.trace.Write(format, args);
+            this.trace.WriteLine(" at offset {0}", this.CurrentPosition);
+            this.trace.Flush();
         }
     }
 

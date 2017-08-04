@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Hagar.Exceptions;
 
 namespace Hagar.WireProtocol
 {

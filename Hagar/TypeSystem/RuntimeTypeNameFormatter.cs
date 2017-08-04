@@ -1,8 +1,9 @@
 using System;
 using System.Reflection;
 using System.Text;
+using Hagar.Utilities;
 
-namespace Hagar
+namespace Hagar.TypeSystem
 {
     /// <summary>
     /// Utility methods for formatting <see cref="Type"/> and <see cref="TypeInfo"/> instances in a way which can be parsed by

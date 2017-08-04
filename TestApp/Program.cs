@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Hagar;
-using Hagar.Exceptions;
-using Hagar.Orleans.Serialization;
+using Hagar.Session;
+using Hagar.Utilities;
+using Hagar.Utilities.Orleans.Serialization;
 using Hagar.WireProtocol;
 
 namespace TestApp

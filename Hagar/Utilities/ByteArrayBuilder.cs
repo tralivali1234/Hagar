@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Hagar
+namespace Hagar.Utilities
 {
     internal class ByteArrayBuilder
     {
@@ -39,52 +39,52 @@ namespace Hagar
         /// <param Name="size"></param>
         private ByteArrayBuilder(BufferPool bufferPool)
         {
-            pool = bufferPool;
-            bufferSize = bufferPool.Size;
-            completedBuffers = new List<ArraySegment<byte>>();
-            currentOffset = 0;
-            completedLength = 0;
-            currentBuffer = null;
+            this.pool = bufferPool;
+            this.bufferSize = bufferPool.Size;
+            this.completedBuffers = new List<ArraySegment<byte>>();
+            this.currentOffset = 0;
+            this.completedLength = 0;
+            this.currentBuffer = null;
         }
 
         public void ReleaseBuffers()
         {
-            pool.Release(ToBytes());
-            currentBuffer = null;
-            currentOffset = 0;
+            this.pool.Release(this.ToBytes());
+            this.currentBuffer = null;
+            this.currentOffset = 0;
         }
 
         public List<ArraySegment<byte>> ToBytes()
         {
-            if (currentOffset <= 0) return completedBuffers;
+            if (this.currentOffset <= 0) return this.completedBuffers;
 
-            completedBuffers.Add(new ArraySegment<byte>(currentBuffer, 0, currentOffset));
-            completedLength += currentOffset;
-            currentBuffer = null;
-            currentOffset = 0;
+            this.completedBuffers.Add(new ArraySegment<byte>(this.currentBuffer, 0, this.currentOffset));
+            this.completedLength += this.currentOffset;
+            this.currentBuffer = null;
+            this.currentOffset = 0;
 
-            return completedBuffers;
+            return this.completedBuffers;
         }
 
         private bool RoomFor(int n)
         {
-            return (currentBuffer != null) && (currentOffset + n <= bufferSize);
+            return (this.currentBuffer != null) && (this.currentOffset + n <= this.bufferSize);
         }
 
         public byte[] ToByteArray()
         {
-            var result = new byte[Length];
+            var result = new byte[this.Length];
 
             int offset = 0;
-            foreach (var buffer in completedBuffers)
+            foreach (var buffer in this.completedBuffers)
             {
                 Array.Copy(buffer.Array, buffer.Offset, result, offset, buffer.Count);
                 offset += buffer.Count;
             }
 
-            if ((currentOffset > 0) && (currentBuffer != null))
+            if ((this.currentOffset > 0) && (this.currentBuffer != null))
             {
-                Array.Copy(currentBuffer, 0, result, offset, currentOffset);
+                Array.Copy(this.currentBuffer, 0, result, offset, this.currentOffset);
             }
 
             return result;
@@ -94,26 +94,26 @@ namespace Hagar
         {
             get
             {
-                return currentOffset + completedLength;
+                return this.currentOffset + this.completedLength;
             }
         }
 
         private void Grow()
         {
-            if (currentBuffer != null)
+            if (this.currentBuffer != null)
             {
-                completedBuffers.Add(new ArraySegment<byte>(currentBuffer, 0, currentOffset));
-                completedLength += currentOffset;
+                this.completedBuffers.Add(new ArraySegment<byte>(this.currentBuffer, 0, this.currentOffset));
+                this.completedLength += this.currentOffset;
             }
-            currentBuffer = pool.GetBuffer();
-            currentOffset = 0;
+            this.currentBuffer = this.pool.GetBuffer();
+            this.currentOffset = 0;
         }
 
         private void EnsureRoomFor(int n)
         {
-            if (!RoomFor(n))
+            if (!this.RoomFor(n))
             {
-                Grow();
+                this.Grow();
             }
         }
 
@@ -133,24 +133,24 @@ namespace Hagar
             // 2) Make sure to ALWAYS copy arrays which size is EXACTLY bufferSize, otherwise if the data was passed as an Immutable arg, 
             // we may return this buffer back to the BufferPool and later over-write it.
             // 3) If we already have MINIMUM_BUFFER_SIZE in the current buffer and passed enough data, also skip the copy and append it as its own buffer. 
-            if (((arrLen != bufferSize) && (currentOffset > MINIMUM_BUFFER_SIZE) && (arrLen > MINIMUM_BUFFER_SIZE)) || (arrLen > bufferSize))
+            if (((arrLen != this.bufferSize) && (this.currentOffset > MINIMUM_BUFFER_SIZE) && (arrLen > MINIMUM_BUFFER_SIZE)) || (arrLen > this.bufferSize))
             {
-                Grow();
-                completedBuffers.Add(new ArraySegment<byte>(array));
-                completedLength += array.Length;
+                this.Grow();
+                this.completedBuffers.Add(new ArraySegment<byte>(array));
+                this.completedLength += array.Length;
             }
             else
             {
-                EnsureRoomFor(1);
-                int n = Math.Min(array.Length, (int)(bufferSize - currentOffset));
-                Array.Copy(array, 0, currentBuffer, currentOffset, n);
-                currentOffset += n;
+                this.EnsureRoomFor(1);
+                int n = Math.Min(array.Length, (int)(this.bufferSize - this.currentOffset));
+                Array.Copy(array, 0, this.currentBuffer, this.currentOffset, n);
+                this.currentOffset += n;
                 int r = array.Length - n;
                 if (r <= 0) return this;
 
-                Grow(); // Resets currentOffset to zero
-                Array.Copy(array, n, currentBuffer, currentOffset, r);
-                currentOffset += r;
+                this.Grow(); // Resets currentOffset to zero
+                Array.Copy(array, n, this.currentBuffer, this.currentOffset, r);
+                this.currentOffset += r;
             }
             return this;
         }
@@ -162,17 +162,17 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(ByteArrayBuilder b)
         {
-            if ((currentBuffer != null) && (currentOffset > 0))
+            if ((this.currentBuffer != null) && (this.currentOffset > 0))
             {
-                completedBuffers.Add(new ArraySegment<byte>(currentBuffer, 0, currentOffset));
-                completedLength += currentOffset;
+                this.completedBuffers.Add(new ArraySegment<byte>(this.currentBuffer, 0, this.currentOffset));
+                this.completedLength += this.currentOffset;
             }
 
-            completedBuffers.AddRange(b.completedBuffers);
-            completedLength += b.completedLength;
+            this.completedBuffers.AddRange(b.completedBuffers);
+            this.completedLength += b.completedLength;
 
-            currentBuffer = b.currentBuffer;
-            currentOffset = b.currentOffset;
+            this.currentBuffer = b.currentBuffer;
+            this.currentOffset = b.currentOffset;
 
             return this;
         }
@@ -185,17 +185,17 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(List<ArraySegment<byte>> b)
         {
-            if ((currentBuffer != null) && (currentOffset > 0))
+            if ((this.currentBuffer != null) && (this.currentOffset > 0))
             {
-                completedBuffers.Add(new ArraySegment<byte>(currentBuffer, 0, currentOffset));
-                completedLength += currentOffset;
+                this.completedBuffers.Add(new ArraySegment<byte>(this.currentBuffer, 0, this.currentOffset));
+                this.completedLength += this.currentOffset;
             }
 
-            completedBuffers.AddRange(b);
-            completedLength += b.Sum(buff => buff.Count);
+            this.completedBuffers.AddRange(b);
+            this.completedLength += b.Sum(buff => buff.Count);
 
-            currentBuffer = null;
-            currentOffset = 0;
+            this.currentBuffer = null;
+            this.currentOffset = 0;
 
             return this;
         }
@@ -203,27 +203,27 @@ namespace Hagar
         private ByteArrayBuilder AppendImpl(Array array)
         {
             int n = Buffer.ByteLength(array);
-            if (RoomFor(n))
+            if (this.RoomFor(n))
             {
-                Buffer.BlockCopy(array, 0, currentBuffer, currentOffset, n);
-                currentOffset += n;
+                Buffer.BlockCopy(array, 0, this.currentBuffer, this.currentOffset, n);
+                this.currentOffset += n;
             }
-            else if (n <= bufferSize)
+            else if (n <= this.bufferSize)
             {
-                Grow();
-                Buffer.BlockCopy(array, 0, currentBuffer, currentOffset, n);
-                currentOffset += n;
+                this.Grow();
+                Buffer.BlockCopy(array, 0, this.currentBuffer, this.currentOffset, n);
+                this.currentOffset += n;
             }
             else
             {
                 var pos = 0;
                 while (pos < n)
                 {
-                    EnsureRoomFor(1);
-                    var k = Math.Min(n - pos, (int) (bufferSize - currentOffset));
-                    Buffer.BlockCopy(array, pos, currentBuffer, currentOffset, k);
+                    this.EnsureRoomFor(1);
+                    var k = Math.Min(n - pos, (int) (this.bufferSize - this.currentOffset));
+                    Buffer.BlockCopy(array, pos, this.currentBuffer, this.currentOffset, k);
                     pos += k;
-                    currentOffset += k;
+                    this.currentOffset += k;
                 }
             }
             return this;
@@ -236,7 +236,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(short[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(int[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(long[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(ushort[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(uint[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(ulong[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(sbyte[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(char[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(bool[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -326,7 +326,7 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(float[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         /// <summary>
@@ -336,100 +336,100 @@ namespace Hagar
         /// <returns></returns>
         public ByteArrayBuilder Append(double[] array)
         {
-            return AppendImpl(array);
+            return this.AppendImpl(array);
         }
 
         public ByteArrayBuilder Append(byte b)
         {
-            EnsureRoomFor(1);
-            currentBuffer[currentOffset++] = b;
+            this.EnsureRoomFor(1);
+            this.currentBuffer[this.currentOffset++] = b;
             return this;
         }
 
         public ByteArrayBuilder Append(Span<byte> span)
         {
             var length = span.Length;
-            EnsureRoomFor(length);
-            for (var count = 0; count < length; ++count) currentBuffer[currentOffset++] = span[count];
+            this.EnsureRoomFor(length);
+            for (var count = 0; count < length; ++count) this.currentBuffer[this.currentOffset++] = span[count];
             return this;
         }
 
         public ByteArrayBuilder Append(sbyte b)
         {
-            EnsureRoomFor(1);
-            currentBuffer[currentOffset++] = unchecked((byte)b);
+            this.EnsureRoomFor(1);
+            this.currentBuffer[this.currentOffset++] = unchecked((byte)b);
             return this;
         }
 
         public ByteArrayBuilder Append(int i)
         {
-            EnsureRoomFor(sizeof(int));
-            tempIntArray[0] = i;
-            Buffer.BlockCopy(tempIntArray, 0, currentBuffer, currentOffset, sizeof(int));
-            currentOffset += sizeof(int);
+            this.EnsureRoomFor(sizeof(int));
+            this.tempIntArray[0] = i;
+            Buffer.BlockCopy(this.tempIntArray, 0, this.currentBuffer, this.currentOffset, sizeof(int));
+            this.currentOffset += sizeof(int);
             return this;
         }
 
         public ByteArrayBuilder Append(long i)
         {
-            EnsureRoomFor(sizeof(long));
-            tempLongArray[0] = i;
-            Buffer.BlockCopy(tempLongArray, 0, currentBuffer, currentOffset, sizeof(long));
-            currentOffset += sizeof(long);
+            this.EnsureRoomFor(sizeof(long));
+            this.tempLongArray[0] = i;
+            Buffer.BlockCopy(this.tempLongArray, 0, this.currentBuffer, this.currentOffset, sizeof(long));
+            this.currentOffset += sizeof(long);
             return this;
         }
 
         public ByteArrayBuilder Append(short i)
         {
-            EnsureRoomFor(sizeof(short));
-            tempShortArray[0] = i;
-            Buffer.BlockCopy(tempShortArray, 0, currentBuffer, currentOffset, sizeof(short));
-            currentOffset += sizeof(short);
+            this.EnsureRoomFor(sizeof(short));
+            this.tempShortArray[0] = i;
+            Buffer.BlockCopy(this.tempShortArray, 0, this.currentBuffer, this.currentOffset, sizeof(short));
+            this.currentOffset += sizeof(short);
             return this;
         }
 
         public ByteArrayBuilder Append(uint i)
         {
-            EnsureRoomFor(sizeof(uint));
-            tempUIntArray[0] = i;
-            Buffer.BlockCopy(tempUIntArray, 0, currentBuffer, currentOffset, sizeof(uint));
-            currentOffset += sizeof(uint);
+            this.EnsureRoomFor(sizeof(uint));
+            this.tempUIntArray[0] = i;
+            Buffer.BlockCopy(this.tempUIntArray, 0, this.currentBuffer, this.currentOffset, sizeof(uint));
+            this.currentOffset += sizeof(uint);
             return this;
         }
 
         public ByteArrayBuilder Append(ulong i)
         {
-            EnsureRoomFor(sizeof(ulong));
-            tempULongArray[0] = i;
-            Buffer.BlockCopy(tempULongArray, 0, currentBuffer, currentOffset, sizeof(ulong));
-            currentOffset += sizeof(ulong);
+            this.EnsureRoomFor(sizeof(ulong));
+            this.tempULongArray[0] = i;
+            Buffer.BlockCopy(this.tempULongArray, 0, this.currentBuffer, this.currentOffset, sizeof(ulong));
+            this.currentOffset += sizeof(ulong);
             return this;
         }
 
         public ByteArrayBuilder Append(ushort i)
         {
-            EnsureRoomFor(sizeof(ushort));
-            tempUShortArray[0] = i;
-            Buffer.BlockCopy(tempUShortArray, 0, currentBuffer, currentOffset, sizeof(ushort));
-            currentOffset += sizeof(ushort);
+            this.EnsureRoomFor(sizeof(ushort));
+            this.tempUShortArray[0] = i;
+            Buffer.BlockCopy(this.tempUShortArray, 0, this.currentBuffer, this.currentOffset, sizeof(ushort));
+            this.currentOffset += sizeof(ushort);
             return this;
         }
 
         public ByteArrayBuilder Append(float i)
         {
-            EnsureRoomFor(sizeof(float));
-            tempFloatArray[0] = i;
-            Buffer.BlockCopy(tempFloatArray, 0, currentBuffer, currentOffset, sizeof(float));
-            currentOffset += sizeof(float);
+            this.EnsureRoomFor(sizeof(float));
+            this.tempFloatArray[0] = i;
+            Buffer.BlockCopy(this.tempFloatArray, 0, this.currentBuffer, this.currentOffset, sizeof(float));
+            this.currentOffset += sizeof(float);
             return this;
         }
 
         public ByteArrayBuilder Append(double i)
         {
-            EnsureRoomFor(sizeof(double));
-            tempDoubleArray[0] = i;
-            Buffer.BlockCopy(tempDoubleArray, 0, currentBuffer, currentOffset, sizeof(double));
-            currentOffset += sizeof(double);
+            this.EnsureRoomFor(sizeof(double));
+            this.tempDoubleArray[0] = i;
+            Buffer.BlockCopy(this.tempDoubleArray, 0, this.currentBuffer, this.currentOffset, sizeof(double));
+            this.currentOffset += sizeof(double);
             return this;
         }
 

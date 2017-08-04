@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Hagar
+namespace Hagar.Utilities
 {
     internal class BufferPool
     {
@@ -18,12 +18,12 @@ namespace Hagar
 
         public int Size
         {
-            get { return byteBufferSize; }
+            get { return this.byteBufferSize; }
         }
 
         public int Count
         {
-            get { return buffers.Count; }
+            get { return this.buffers.Count; }
         }
 
         public string Name
@@ -46,28 +46,28 @@ namespace Hagar
         /// <param name="name">Name of the buffer pool.</param>
         private BufferPool(int bufferSize, int maxBuffers, int preallocationSize, string name)
         {
-            Name = name;
-            byteBufferSize = bufferSize;
-            maxBuffersCount = maxBuffers;
-            limitBuffersCount = maxBuffers > 0;
-            buffers = new ConcurrentBag<byte[]>();
+            this.Name = name;
+            this.byteBufferSize = bufferSize;
+            this.maxBuffersCount = maxBuffers;
+            this.limitBuffersCount = maxBuffers > 0;
+            this.buffers = new ConcurrentBag<byte[]>();
 
             if (preallocationSize <= 0) return;
 
-            var dummy = GetMultiBuffer(preallocationSize * Size);
-            Release(dummy);
+            var dummy = this.GetMultiBuffer(preallocationSize * this.Size);
+            this.Release(dummy);
         }
 
         public byte[] GetBuffer()
         {
             byte[] buffer;
-            if (!buffers.TryTake(out buffer))
+            if (!this.buffers.TryTake(out buffer))
             {
-                buffer = new byte[byteBufferSize];
+                buffer = new byte[this.byteBufferSize];
             }
-            else if (limitBuffersCount)
+            else if (this.limitBuffersCount)
             {
-                Interlocked.Decrement(ref currentBufferCount);
+                Interlocked.Decrement(ref this.currentBufferCount);
             }
             
             return buffer;
@@ -78,27 +78,27 @@ namespace Hagar
             var list = new List<ArraySegment<byte>>();
             while (totalSize > 0)
             {
-                var buff = GetBuffer();
-                list.Add(new ArraySegment<byte>(buff, 0, Math.Min((int) byteBufferSize, totalSize)));
-                totalSize -= byteBufferSize;
+                var buff = this.GetBuffer();
+                list.Add(new ArraySegment<byte>(buff, 0, Math.Min((int) this.byteBufferSize, totalSize)));
+                totalSize -= this.byteBufferSize;
             }
             return list;
         }
 
         public void Release(byte[] buffer)
         {
-            if (buffer.Length == byteBufferSize)
+            if (buffer.Length == this.byteBufferSize)
             {
-                if (limitBuffersCount && currentBufferCount > maxBuffersCount)
+                if (this.limitBuffersCount && this.currentBufferCount > this.maxBuffersCount)
                 {
                     return;
                 }
 
-                buffers.Add(buffer);
+                this.buffers.Add(buffer);
 
-                if (limitBuffersCount)
+                if (this.limitBuffersCount)
                 {
-                    Interlocked.Increment(ref currentBufferCount);
+                    Interlocked.Increment(ref this.currentBufferCount);
                 }
             }
         }
@@ -109,7 +109,7 @@ namespace Hagar
 
             foreach (var segment in list)
             {
-                Release(segment.Array);
+                this.Release(segment.Array);
             }
         }
     }

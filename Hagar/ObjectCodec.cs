@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.Utilities.Orleans.Serialization;
@@ -128,141 +129,28 @@ namespace Hagar
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }
         }
-        
-        public static void WriteInt32Field(this Writer writer, uint fieldId, int value)
+    }
+
+    public static class StringCodec
+    {
+        public static string ReadStringField(this Reader reader, Field field)
         {
-            if (value > 1 << 20 || -value > 1 << 20)
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.Fixed32
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.Write(value);
-            }
-            else
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.VarInt
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.WriteVarInt(value);
-            }
+            if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
+            var length = reader.ReadVarUInt32();
+            var bytes = reader.ReadBytes((int)length);
+            return Encoding.UTF8.GetString(bytes);
         }
 
-        public static void WriteUInt32Field(this Writer writer, uint fieldId, uint value)
+        public static void WriteStringField(this Writer writer, SerializationContext context, uint fieldId, string value, Type expectedType)
         {
-            if (value > 1 << 20)
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.Fixed32
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.Write(value);
-            }
-            else
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.VarInt
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.WriteVarInt(value);
-            }
+            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(string), WireType.LengthPrefixed);
+            // TODO: use Span<byte>
+            var bytes = Encoding.UTF8.GetBytes(value);
+            writer.WriteVarInt((uint)bytes.Length);
+            writer.Write(bytes);
         }
 
-        public static void WriteInt64Field(this Writer writer, uint fieldId, long value)
-        {
-            if (value <= int.MaxValue && value >= int.MinValue)
-            {
-                writer.WriteInt32Field(fieldId, (int) value);
-            }
-            else if (value > 1 << 41 || -value > 1 << 41)
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.Fixed64
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.Write(value);
-            }
-            else
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.VarInt
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.WriteVarInt(value);
-            }
-        }
-
-        public static void WriteUInt64Field(this Writer writer, uint fieldId, ulong value)
-        {
-            if (value <= int.MaxValue)
-            {
-                writer.WriteUInt32Field(fieldId, (uint)value);
-            }
-            else if (value > 1 << 41)
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.Fixed64
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.Write(value);
-            }
-            else
-            {
-                var field = new Field
-                {
-                    FieldId = fieldId,
-                    SchemaType = SchemaType.Expected,
-                    WireType = WireType.VarInt
-                };
-
-                writer.Write(field.Tag);
-                if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
-
-                writer.WriteVarInt(value);
-            }
-        }
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
     }
 }

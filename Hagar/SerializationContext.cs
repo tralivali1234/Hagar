@@ -4,15 +4,11 @@ using Hagar.WireProtocol;
 
 namespace Hagar
 {
-    public class SerializationContext
+    public class WellKnownTypeCollection
     {
         private readonly Dictionary<uint, Type> wellKnownTypes;
         private readonly Dictionary<Type, uint> wellKnownTypeToIdMap = new Dictionary<Type, uint>();
-
-        private readonly Dictionary<uint, Type> referencedTypes = new Dictionary<uint, Type>();
-        private readonly Dictionary<Type, uint> referencedTypeToIdMap = new Dictionary<Type, uint>();
-
-        public SerializationContext()
+        public WellKnownTypeCollection()
         {
             this.wellKnownTypes = new Dictionary<uint, Type>
             {
@@ -40,15 +36,33 @@ namespace Hagar
                 this.wellKnownTypeToIdMap[item.Value] = item.Key;
             }
         }
-        public TypeCodec TypeCodec { get; } = new TypeCodec();
-
         public Type GetWellKnownType(uint typeId) => this.wellKnownTypes[typeId];
         public bool TryGetWellKnownType(uint typeId, out Type type) => this.wellKnownTypes.TryGetValue(typeId, out type);
         public bool TryGetWellKnownTypeId(Type type, out uint typeId) => this.wellKnownTypeToIdMap.TryGetValue(type, out typeId);
-        
+    }
+
+    public class ReferencedTypeCollection
+    {
+        private readonly Dictionary<uint, Type> referencedTypes = new Dictionary<uint, Type>();
+        private readonly Dictionary<Type, uint> referencedTypeToIdMap = new Dictionary<Type, uint>();
+
         public Type GetReferencedType(uint reference) => this.referencedTypes[reference];
         public bool TryGetReferencedType(uint reference, out Type type) => this.referencedTypes.TryGetValue(reference, out type);
         public bool TryGetTypeReference(Type type, out uint reference) => this.referencedTypeToIdMap.TryGetValue(type, out reference);
+    }
+    public class SerializationContext
+    {
+        public TypeCodec TypeCodec { get; } = new TypeCodec();
+        public WellKnownTypeCollection WellKnownTypes { get; } = new WellKnownTypeCollection();
+        public ReferencedTypeCollection ReferencedTypes { get; } = new ReferencedTypeCollection();
+
+        public Type GetWellKnownType(uint typeId) => this.WellKnownTypes.GetWellKnownType(typeId);
+        public bool TryGetWellKnownType(uint typeId, out Type type) => this.WellKnownTypes.TryGetWellKnownType(typeId, out type);
+        public bool TryGetWellKnownTypeId(Type type, out uint typeId) => this.WellKnownTypes.TryGetWellKnownTypeId(type, out typeId);
+
+        public Type GetReferencedType(uint reference) => this.ReferencedTypes.GetReferencedType(reference);
+        public bool TryGetReferencedType(uint reference, out Type type) => this.ReferencedTypes.TryGetReferencedType(reference, out type);
+        public bool TryGetTypeReference(Type type, out uint reference) => this.ReferencedTypes.TryGetTypeReference(type, out reference);
     }
 
     public interface IToken
