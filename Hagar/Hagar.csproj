@@ -7,29 +7,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="SerializationContext.cs" />
-    <Compile Remove="TypeCodec.cs" />
-    <Compile Remove="WireProtocol\VarIntReaderExtensions.cs" />
-    <Compile Remove="WireProtocol\VarIntWriterExtensions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="ObjectCodec.cs" />
-    <Compile Include="WireCodec.cs" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="System.Binary" Version="0.1.0-e170509-1" />
     <PackageReference Include="System.Buffers" Version="4.4.0-preview2-25308-01" />
-    <PackageReference Include="System.IO.Pipelines" Version="0.1.0-e170506-2" />
-    <PackageReference Include="System.Memory" Version="4.4.0-preview2-25308-01" />
-    <PackageReference Include="System.ValueTuple" Version="4.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Codec\" />
+    <PackageReference Include="System.IO.Pipelines" Version="0.1.0-e170506-2" /> 
+    <PackageReference Include="System.Memory" Version="4.4.0-preview2-25405-01" />
+    <PackageReference Include="System.ValueTuple" Version="4.4.0-preview2-25405-01" />
   </ItemGroup>
 
 </Project>

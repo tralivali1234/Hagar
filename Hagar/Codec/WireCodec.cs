@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Text;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.Utilities.Orleans.Serialization;
 using Hagar.WireProtocol;
 
-namespace Hagar
+namespace Hagar.Codec
 {
     /// <summary>
     /// Codec for operating with the wire format.
@@ -13,26 +12,6 @@ namespace Hagar
     /// </summary>
     public static class WireCodec
     {
-        private static readonly byte EndObjectTag = new Tag
-        {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.EndTagDelimited
-        };
-
-        private static readonly byte EndBaseFieldsTag = new Tag
-        {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.EndBaseFields
-        };
-
-/*
-        private static readonly byte NullObjectTag = new Tag
-        {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.Null
-        };
-*/
-
         public static void WriteFieldHeader(this Writer writer, SerializationContext context, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
             var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(context, expectedType, actualType);
@@ -46,21 +25,6 @@ namespace Hagar
             if (field.HasExtendedSchemaType) writer.WriteType(context, schemaType, idOrReference, actualType);
         }
 
-        public static void WriteEndObject(this Writer writer)
-        {
-            writer.Write(EndObjectTag);
-        }
-/*
-        public static void WriteNull(this Writer writer)
-        {
-            writer.Write(NullObjectTag);
-        }*/
-
-        public static void WriteEndBase(this Writer writer)
-        {
-            writer.Write(EndBaseFieldsTag);
-        }
-
         public static Field ReadFieldHeader(this Reader reader, SerializationContext context)
         {
             var field = default(Field);
@@ -71,7 +35,7 @@ namespace Hagar
             return field;
         }
 
-        public static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializationContext context, Type expectedType, Type actualType)
+        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializationContext context, Type expectedType, Type actualType)
         {
             if (actualType == expectedType)
             {
@@ -129,28 +93,5 @@ namespace Hagar
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }
         }
-    }
-
-    public static class StringCodec
-    {
-        public static string ReadStringField(this Reader reader, Field field)
-        {
-            if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
-            var length = reader.ReadVarUInt32();
-            var bytes = reader.ReadBytes((int)length);
-            return Encoding.UTF8.GetString(bytes);
-        }
-
-        public static void WriteStringField(this Writer writer, SerializationContext context, uint fieldId, string value, Type expectedType)
-        {
-            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(string), WireType.LengthPrefixed);
-            // TODO: use Span<byte>
-            var bytes = Encoding.UTF8.GetBytes(value);
-            writer.WriteVarInt((uint)bytes.Length);
-            writer.Write(bytes);
-        }
-
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
     }
 }

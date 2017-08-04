@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Hagar;
+using Hagar.Codec;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.Utilities.Orleans.Serialization;
@@ -23,7 +21,7 @@ namespace TestApp
                 Int = 2,
             };
 
-            writer.WriteFieldHeader(context, 0, typeof(SubType), typeof(SubType), WireType.TagDelimited);
+            writer.WriteStartObject(context, 0, typeof(SubType), typeof(SubType));
             SerializeMyType(writer, context, expected);
             writer.WriteEndObject();
 

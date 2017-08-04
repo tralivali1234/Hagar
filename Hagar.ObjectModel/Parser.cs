@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Hagar.Codec;
 using Hagar.Session;
 using Hagar.Utilities;
 
