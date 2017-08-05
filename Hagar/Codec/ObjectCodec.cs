@@ -1,6 +1,6 @@
 using System;
 using Hagar.Session;
-using Hagar.Utilities.Orleans.Serialization;
+using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codec

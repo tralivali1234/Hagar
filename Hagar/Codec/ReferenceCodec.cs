@@ -1,7 +1,6 @@
 using System;
 using Hagar.Session;
 using Hagar.Utilities;
-using Hagar.Utilities.Orleans.Serialization;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codec
@@ -28,7 +27,7 @@ namespace Hagar.Codec
         public static T ReadReference<T>(Reader reader, SerializationContext context)
         {
             var reference = reader.ReadVarUInt32();
-            if (context.ReferencedObjects.TryGetReferencedType(reference, out object value)) return (T) value;
+            if (context.ReferencedObjects.TryGetReferencedObject(reference, out object value)) return (T) value;
 
             ThrowReferenceNotFound<T>(reference, context);
             return default(T);

@@ -1,3 +1,5 @@
+using Hagar.TypeSystem;
+
 namespace Hagar.Session
 {
     public class SerializationContext

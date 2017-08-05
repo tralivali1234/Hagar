@@ -1,6 +1,6 @@
-using Hagar.Utilities;
+using Hagar.WireProtocol;
 
-namespace Hagar.WireProtocol
+namespace Hagar.Utilities
 {
     public static class VarIntReaderExtensions
     {

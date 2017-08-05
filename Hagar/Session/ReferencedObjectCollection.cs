@@ -9,7 +9,7 @@ namespace Hagar.Session
         private readonly Dictionary<uint, object> references = new Dictionary<uint, object>();
         private readonly Dictionary<object, uint> referenceToIdMap = new Dictionary<object, uint>(ReferenceEqualsComparer.Instance);
 
-        public bool TryGetReferencedType(uint reference, out object value)
+        public bool TryGetReferencedObject(uint reference, out object value)
         {
             // Reference 0 is always null.
             if (reference == 0)

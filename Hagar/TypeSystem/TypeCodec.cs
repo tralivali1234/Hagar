@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Text;
-using Hagar.TypeSystem;
 using Hagar.Utilities;
-using Hagar.Utilities.Orleans.Serialization;
 
-namespace Hagar
+namespace Hagar.TypeSystem
 {
     public class TypeCodec
     {

@@ -2,12 +2,11 @@ using System;
 using System.Text;
 using Hagar.Session;
 using Hagar.Utilities;
-using Hagar.Utilities.Orleans.Serialization;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class StringCodec : IValueCodec<string>
+    public class StringCodec : IFieldCodec<string>
     {
         public string ReadValue(Reader reader, SerializationContext context, Field field)
         {

@@ -1,7 +1,6 @@
 using System;
-using Hagar.Utilities.Orleans.Serialization;
 
-namespace Hagar.WireProtocol
+namespace Hagar.Utilities
 {
     public static class VarIntWriterExtensions
     {

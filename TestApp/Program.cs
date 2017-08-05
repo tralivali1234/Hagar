@@ -1,22 +1,29 @@
 ﻿using System;
+using Hagar.Activator;
 using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
-using Hagar.Utilities.Orleans.Serialization;
 
 namespace TestApp
 {
-    partial class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var stringCodec = new StringCodec();
             var intCodec = new IntegerCodec();
             var baseTypeSerializer = new BaseTypeSerializer<StringCodec>(stringCodec);
+            var activator = new DefaultActivator<SubType>();
+            var partialSerializer = new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>(
+                baseTypeSerializer,
+                stringCodec, intCodec);
             var serializer =
-                new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>(baseTypeSerializer,
-                    stringCodec, intCodec);
+                new ObjectFieldSerializer<SubType, DefaultActivator<SubType>, SubTypeSerializer<
+                    BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>>(
+                    activator,
+                    partialSerializer);
+
 
             Test(serializer, new SubType
             {
@@ -24,34 +31,46 @@ namespace TestApp
                 String = "sub",
                 Int = 2,
             });
+            Test(serializer, new SubType
+            {
+                BaseTypeString = "base",
+                String = "sub",
+                Int = int.MinValue,
+            });
 
-            var testString = new string('*', 100);
+            // Tests for duplicates
+            var testString = new string('*', 10);
             Test(
                 serializer,
                 new SubType
                 {
                     BaseTypeString = testString,
                     String = testString,
-                    Int = 109
+                    Int = 10
+                });
+            Test(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "hello, hagar",
+                    String = null,
+                    Int = 1
                 });
         }
 
-        static void Test(IPartialSerializer<SubType> serializer, SubType expected)
+        static void Test(IFieldCodec<SubType> serializer, SubType expected)
         {
             var context = new SerializationContext();
             var writer = new Writer();
 
-            writer.WriteStartObject(context, 0, typeof(SubType), typeof(SubType));
-            serializer.Serialize(writer, context, expected);
-            writer.WriteEndObject();
+            serializer.WriteField(writer, context, 0, typeof(SubType), expected);
 
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes");
             var reader = new Reader(writer.ToBytes());
             var deserializationContext = new SerializationContext();
             var initialHeader = reader.ReadFieldHeader(context);
-            Console.WriteLine(initialHeader);
-            var actual = new SubType();
-            serializer.Deserialize(reader, deserializationContext, actual);
+            //Console.WriteLine(initialHeader);
+            var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
         }

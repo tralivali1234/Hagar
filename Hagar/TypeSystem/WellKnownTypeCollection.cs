@@ -35,8 +35,33 @@ namespace Hagar
                 this.wellKnownTypeToIdMap[item.Value] = item.Key;
             }
         }
-        public Type GetWellKnownType(uint typeId) => this.wellKnownTypes[typeId];
-        public bool TryGetWellKnownType(uint typeId, out Type type) => this.wellKnownTypes.TryGetValue(typeId, out type);
-        public bool TryGetWellKnownTypeId(Type type, out uint typeId) => this.wellKnownTypeToIdMap.TryGetValue(type, out typeId);
+
+        public Type GetWellKnownType(uint typeId)
+        {
+            if (typeId == 0) return null;
+            return this.wellKnownTypes[typeId];
+        }
+
+        public bool TryGetWellKnownType(uint typeId, out Type type)
+        {
+            if (typeId == 0)
+            {
+                type = null;
+                return true;
+            }
+
+            return this.wellKnownTypes.TryGetValue(typeId, out type);
+        }
+
+        public bool TryGetWellKnownTypeId(Type type, out uint typeId)
+        {
+            if (type == null)
+            {
+                typeId = 0;
+                return true;
+            }
+
+            return this.wellKnownTypeToIdMap.TryGetValue(type, out typeId);
+        }
     }
 }

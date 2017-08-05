@@ -1,75 +1,74 @@
 ﻿using System;
 using Hagar.Session;
 using Hagar.Utilities;
-using Hagar.Utilities.Orleans.Serialization;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class IntegerCodec : IValueCodec<byte>, IValueCodec<sbyte>, IValueCodec<int>, IValueCodec<uint>,
-        IValueCodec<short>, IValueCodec<ushort>, IValueCodec<long>, IValueCodec<ulong>, IValueCodec<char>
+    public class IntegerCodec : IFieldCodec<byte>, IFieldCodec<sbyte>, IFieldCodec<int>, IFieldCodec<uint>,
+        IFieldCodec<short>, IFieldCodec<ushort>, IFieldCodec<long>, IFieldCodec<ulong>, IFieldCodec<char>
     {
-        void IValueCodec<char>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<char>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             char value)
         {
             writer.WriteFieldHeader(context, fieldId, expectedType, typeof(char), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        char IValueCodec<char>.ReadValue(Reader reader, SerializationContext context, Field field)
+        char IFieldCodec<char>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return (char)reader.ReadUInt8(field.WireType);
         }
 
-        void IValueCodec<byte>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<byte>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             byte value)
         {
             writer.WriteFieldHeader(context, fieldId, expectedType, typeof(byte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        byte IValueCodec<byte>.ReadValue(Reader reader, SerializationContext context, Field field)
+        byte IFieldCodec<byte>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadUInt8(field.WireType);
         }
 
-        void IValueCodec<sbyte>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<sbyte>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             sbyte value)
         {
             writer.WriteFieldHeader(context, fieldId, expectedType, typeof(sbyte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        sbyte IValueCodec<sbyte>.ReadValue(Reader reader, SerializationContext context, Field field)
+        sbyte IFieldCodec<sbyte>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadInt8(field.WireType);
         }
 
-        void IValueCodec<short>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<short>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             short value)
         {
             writer.WriteFieldHeader(context, fieldId, expectedType, typeof(short), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        ushort IValueCodec<ushort>.ReadValue(Reader reader, SerializationContext context, Field field)
+        ushort IFieldCodec<ushort>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadUInt16(field.WireType);
         }
 
-        void IValueCodec<ushort>.WriteField(Writer writer, SerializationContext context, uint fieldId,
+        void IFieldCodec<ushort>.WriteField(Writer writer, SerializationContext context, uint fieldId,
             Type expectedType, ushort value)
         {
             writer.WriteFieldHeader(context, fieldId, expectedType, typeof(ushort), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        short IValueCodec<short>.ReadValue(Reader reader, SerializationContext context, Field field)
+        short IFieldCodec<short>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadInt16(field.WireType);
         }
 
-        void IValueCodec<uint>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<uint>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             uint value)
         {
             if (value > 1 << 20)
@@ -84,12 +83,12 @@ namespace Hagar.Codec
             }
         }
 
-        uint IValueCodec<uint>.ReadValue(Reader reader, SerializationContext context, Field field)
+        uint IFieldCodec<uint>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadUInt32(field.WireType);
         }
 
-        void IValueCodec<int>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<int>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             int value)
         {
             if (value > 1 << 20 || -value > 1 << 20)
@@ -104,12 +103,12 @@ namespace Hagar.Codec
             }
         }
 
-        int IValueCodec<int>.ReadValue(Reader reader, SerializationContext context, Field field)
+        int IFieldCodec<int>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadInt32(field.WireType);
         }
 
-void IValueCodec<long>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType, long value)
+void IFieldCodec<long>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType, long value)
 {
     if (value <= int.MaxValue && value >= int.MinValue)
     {
@@ -136,12 +135,12 @@ void IValueCodec<long>.WriteField(Writer writer, SerializationContext context, u
     }
 }
 
-        long IValueCodec<long>.ReadValue(Reader reader, SerializationContext context, Field field)
+        long IFieldCodec<long>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadInt64(field.WireType);
         }
 
-        void IValueCodec<ulong>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
+        void IFieldCodec<ulong>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
             ulong value)
         {
             if (value <= int.MaxValue)
@@ -169,7 +168,7 @@ void IValueCodec<long>.WriteField(Writer writer, SerializationContext context, u
             }
         }
 
-        ulong IValueCodec<ulong>.ReadValue(Reader reader, SerializationContext context, Field field)
+        ulong IFieldCodec<ulong>.ReadValue(Reader reader, SerializationContext context, Field field)
         {
             return reader.ReadUInt64(field.WireType);
         }
