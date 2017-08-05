@@ -5,7 +5,7 @@ namespace Hagar.WireProtocol
         // [W W W] [S S] [F F F]
         public const byte WireTypeMask = 0b1110_0000; // The first 3 bits are dedicated to the wire type.
         public const byte SchemaTypeMask = 0b0001_1000; // The next 2 bits are dedicated to the schema type specifier, if the schema type is expected.
-        public const byte FieldIdMask = 0b000_0111; // The final 3 bits are used for the field id, if the field id is expected.
+        public const byte FieldIdMask = 0b000_0111; // The final 3 bits are used for the field id delta, if the delta is expected.
         public const byte FieldIdCompleteMask = 0b0000_0111;
         public const byte ExtendedWireTypeMask = 0b0001_1000;
 
@@ -57,29 +57,29 @@ namespace Hagar.WireProtocol
         public bool IsSchemaTypeValid => this.WireType != WireType.Extended;
 
         /// <summary>
-        /// Returns the <see cref="FieldId"/> of the field represented by this tag.
+        /// Returns the <see cref="FieldIdDelta"/> of the field represented by this tag.
         /// </summary>
         /// <remarks>
-        /// If <see cref="IsFieldIdValid"/> is <see langword="false"/>, this value is not a complete field id.
+        /// If <see cref="IsFieldIdValid"/> is <see langword="false"/>, this value is not a complete field id delta.
         /// </remarks>
-        public uint FieldId
+        public uint FieldIdDelta
         {
             get => (uint)(this.tag & FieldIdMask);
             set => this.tag = (byte)((this.tag & ~FieldIdMask) | ((byte)value & FieldIdMask));
         }
 
         /// <summary>
-        /// Clears the <see cref="FieldId"/>.
+        /// Clears the <see cref="FieldIdDelta"/>.
         /// </summary>
         public void ClearFieldId() => this.tag = (byte)(this.tag & ~FieldIdMask);
 
         /// <summary>
-        /// Invalidates <see cref="FieldId"/>.
+        /// Invalidates <see cref="FieldIdDelta"/>.
         /// </summary>
         public void SetFieldIdInvalid() => this.tag |= FieldIdCompleteMask;
 
         /// <summary>
-        /// Returns <see langword="true"/> if the <see cref="FieldId"/> represents a complete id, <see langword="false"/> if more data is required.
+        /// Returns <see langword="true"/> if the <see cref="FieldIdDelta"/> represents a complete id, <see langword="false"/> if more data is required.
         /// </summary>
         /// <remarks>
         /// If all bits are set in the field id portion of the tag, this field id is not valid and this tag must be followed by a field id.

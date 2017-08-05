@@ -109,33 +109,32 @@ namespace Hagar.Codec
             return reader.ReadInt32(field.WireType);
         }
 
-        void IValueCodec<long>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType,
-            long value)
+void IValueCodec<long>.WriteField(Writer writer, SerializationContext context, uint fieldId, Type expectedType, long value)
+{
+    if (value <= int.MaxValue && value >= int.MinValue)
+    {
+        if (value > 1 << 20 || -value > 1 << 20)
         {
-            if (value <= int.MaxValue && value >= int.MinValue)
-            {
-                if (value > 1 << 20 || -value > 1 << 20)
-                {
-                    writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.Fixed32);
-                    writer.Write(value);
-                }
-                else
-                {
-                    writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.VarInt);
-                    writer.WriteVarInt(value);
-                }
-            }
-            else if (value > 1 << 41 || -value > 1 << 41)
-            {
-                writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.Fixed64);
-                writer.Write(value);
-            }
-            else
-            {
-                writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.VarInt);
-                writer.WriteVarInt(value);
-            }
+            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.Fixed32);
+            writer.Write(value);
         }
+        else
+        {
+            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.VarInt);
+            writer.WriteVarInt(value);
+        }
+    }
+    else if (value > 1 << 41 || -value > 1 << 41)
+    {
+        writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.Fixed64);
+        writer.Write(value);
+    }
+    else
+    {
+        writer.WriteFieldHeader(context, fieldId, expectedType, typeof(long), WireType.VarInt);
+        writer.WriteVarInt(value);
+    }
+}
 
         long IValueCodec<long>.ReadValue(Reader reader, SerializationContext context, Field field)
         {

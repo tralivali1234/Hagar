@@ -1,33 +1,45 @@
 ﻿using System;
-using System.Net.Http.Headers;
 using Hagar.Codec;
+using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.Utilities.Orleans.Serialization;
-using Hagar.WireProtocol;
 
 namespace TestApp
 {
-    class Program
+    partial class Program
     {
         static void Main(string[] args)
         {
-            var context = new SerializationContext();
-            var writer = new Writer();
-
-            var expected = new SubType
-            {
-                BaseTypeString = "base",
-                String = "sub",
-                Int = 2,
-            };
-
             var stringCodec = new StringCodec();
             var intCodec = new IntegerCodec();
             var baseTypeSerializer = new BaseTypeSerializer<StringCodec>(stringCodec);
             var serializer =
                 new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>(baseTypeSerializer,
                     stringCodec, intCodec);
+
+            Test(serializer, new SubType
+            {
+                BaseTypeString = "base",
+                String = "sub",
+                Int = 2,
+            });
+
+            var testString = new string('*', 100);
+            Test(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = testString,
+                    String = testString,
+                    Int = 109
+                });
+        }
+
+        static void Test(IPartialSerializer<SubType> serializer, SubType expected)
+        {
+            var context = new SerializationContext();
+            var writer = new Writer();
 
             writer.WriteStartObject(context, 0, typeof(SubType), typeof(SubType));
             serializer.Serialize(writer, context, expected);
@@ -42,111 +54,6 @@ namespace TestApp
             serializer.Deserialize(reader, deserializationContext, actual);
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
-        }
-
-
-        public class BaseTypeSerializer<TStringCodec> : IObjectSerializer<BaseType> where TStringCodec : IValueCodec<string>
-        {
-            private readonly TStringCodec stringCodec;
-
-            public BaseTypeSerializer(TStringCodec stringCodec)
-            {
-                this.stringCodec = stringCodec;
-            }
-
-            public void Serialize(Writer writer, SerializationContext context, BaseType obj)
-            {
-                stringCodec.WriteField(writer, context, 0, typeof(string), obj.BaseTypeString);
-            }
-
-            public void Deserialize(Reader reader, SerializationContext context, BaseType obj)
-            {
-                while (true)
-                {
-                    var header = reader.ReadFieldHeader(context);
-                    Console.WriteLine(header);
-                    if (header.IsEndBaseOrEndObject) break;
-                    switch (header.FieldId)
-                    {
-                        case 0:
-                        {
-                            var type = header.FieldType ?? typeof(string);
-                            obj.BaseTypeString = stringCodec.ReadValue(reader, context, header);
-                            Console.WriteLine(
-                                $"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
-                            break;
-                        }
-                        default:
-                        {
-                            var type = header.FieldType;
-                            Console.WriteLine(
-                                $"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        public interface IObjectSerializer<T> where T : class
-        {
-            void Serialize(Writer writer, SerializationContext context, T value);
-            void Deserialize(Reader reader, SerializationContext context, T value);
-        }
-
-        public class SubTypeSerializer<TBaseSerializer, TStringCodec, TIntCodec> : IObjectSerializer<SubType> where TBaseSerializer : IObjectSerializer<BaseType> where TStringCodec : IValueCodec<string> where TIntCodec : IValueCodec<int>
-        {
-            private readonly TBaseSerializer baseTypeSerializer;
-            private readonly TStringCodec stringCodec;
-            private readonly TIntCodec intCodec;
-
-            public SubTypeSerializer(TBaseSerializer baseTypeSerializer, TStringCodec stringCodec, TIntCodec intCodec)
-            {
-                this.baseTypeSerializer = baseTypeSerializer;
-                this.stringCodec = stringCodec;
-                this.intCodec = intCodec;
-            }
-
-            public void Serialize(Writer writer, SerializationContext context, SubType obj)
-            {
-                this.baseTypeSerializer.Serialize(writer, context, obj);
-                writer.WriteEndBase(); // the base object is complete.
-                this.stringCodec.WriteField(writer, context, 0, typeof(string), obj.String);
-                this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
-                writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
-                writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);
-            }
-            public void Deserialize(Reader reader, SerializationContext context, SubType obj)
-            {
-                this.baseTypeSerializer.Deserialize(reader, context, obj);
-                while (true)
-                {
-                    var header = reader.ReadFieldHeader(context);
-                    Console.WriteLine(header);
-                    if (header.IsEndBaseOrEndObject) break;
-                    Type type;
-                    switch (header.FieldId)
-                    {
-                        case 0:
-                            type = header.FieldType ?? typeof(string);
-                            obj.String = this.stringCodec.ReadValue(reader, context, header);
-                            Console.WriteLine(
-                                $"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
-                            break;
-                        case 1:
-                            obj.Int = this.intCodec.ReadValue(reader, context, header);
-                            type = header.FieldType ?? typeof(long);
-                            Console.WriteLine(
-                                $"\tReading field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
-                            break;
-                        default:
-                            type = header.FieldType;
-                            Console.WriteLine(
-                                $"\tReading UNKNOWN field {header.FieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");
-                            break;
-                    }
-                }
-            }
         }
     }
 

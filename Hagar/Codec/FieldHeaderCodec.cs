@@ -15,12 +15,12 @@ namespace Hagar.Codec
         {
             var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(context, expectedType, actualType);
             var field = default(Field);
-            field.FieldId = fieldId;
+            field.FieldIdDelta = fieldId;
             field.SchemaType = schemaType;
             field.WireType = wireType;
 
             writer.Write(field.Tag);
-            if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldId);
+            if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldIdDelta);
             if (field.HasExtendedSchemaType) writer.WriteType(context, schemaType, idOrReference, actualType);
         }
 
@@ -28,7 +28,7 @@ namespace Hagar.Codec
         {
             var field = default(Field);
             field.Tag = reader.ReadByte();
-            if (field.HasExtendedFieldId) field.FieldId = reader.ReadVarUInt32();
+            if (field.HasExtendedFieldId) field.FieldIdDelta = reader.ReadVarUInt32();
             if (field.IsSchemaTypeValid) field.FieldType = reader.ReadType(context, field.SchemaType);
             
             return field;

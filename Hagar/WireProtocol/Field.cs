@@ -5,7 +5,7 @@ namespace Hagar.WireProtocol
 {
     public struct Field
     {
-        private uint fieldId;
+        private uint fieldIdDelta;
         private Type fieldType;
         public Tag Tag;
 
@@ -18,28 +18,28 @@ namespace Hagar.WireProtocol
         public Field(Tag tag)
         {
             this.Tag = tag;
-            this.fieldId = 0;
+            this.fieldIdDelta = 0;
             this.fieldType = null;
             if (!this.HasFieldId) ThrowFieldIdInvalid();
         }
 
-        public uint FieldId
+        public uint FieldIdDelta
         {
-            // If the embedded field id is valid, return it, otherwise return the extended field id.
+            // If the embedded field id delta is valid, return it, otherwise return the extended field id delta.
             // The extended field id might not be valid if this field has the Extended wire type.
-            get => this.Tag.IsFieldIdValid ? this.Tag.FieldId : this.HasFieldId ? this.fieldId : ThrowFieldIdInvalid();
+            get => this.Tag.IsFieldIdValid ? this.Tag.FieldIdDelta : this.HasFieldId ? this.fieldIdDelta : ThrowFieldIdInvalid();
             set
             {
-                // If the field id can fit into the tag, embed it there, otherwise invalidate the embedded field id and set the full field id.
+                // If the field id delta can fit into the tag, embed it there, otherwise invalidate the embedded field id delta and set the full field id delta.
                 if (value < 7)
                 {
-                    this.Tag.FieldId = value;
-                    this.fieldId = 0;
+                    this.Tag.FieldIdDelta = value;
+                    this.fieldIdDelta = 0;
                 }
                 else
                 {
                     this.Tag.SetFieldIdInvalid();
-                    this.fieldId = value;
+                    this.fieldIdDelta = value;
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace Hagar.WireProtocol
         {
             var builder = new StringBuilder();
             builder.Append('[').Append((string) this.WireType.ToString());
-            if (this.HasFieldId) builder.Append($", Id:{this.FieldId}");
+            if (this.HasFieldId) builder.Append($", Id:{this.FieldIdDelta}");
             if (this.IsSchemaTypeValid) builder.Append($", Type:{this.SchemaType}");
             if (this.WireType == WireType.Extended) builder.Append($": {this.ExtendedWireType}");
             builder.Append(']');
