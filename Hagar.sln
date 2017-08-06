@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.ObjectModel", "Hagar.ObjectModel\Hagar.ObjectModel.csproj", "{62F0A757-A5BF-4993-99F8-27711441B408}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hagar.TestKit", "Hagar.TestKit\Hagar.TestKit.csproj", "{851D09C3-AEFC-4B22-BDE3-7701E0C83563}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.TestKit", "Hagar.TestKit\Hagar.TestKit.csproj", "{851D09C3-AEFC-4B22-BDE3-7701E0C83563}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Json", "Hagar.Json\Hagar.Json.csproj", "{D38C486E-AD92-424A-8995-D5962C946766}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hagar.ISerializable", "Hagar.ISerializable\Hagar.ISerializable.csproj", "{3377F265-3861-48F1-B383-A870A7583A51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{851D09C3-AEFC-4B22-BDE3-7701E0C83563}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{851D09C3-AEFC-4B22-BDE3-7701E0C83563}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{851D09C3-AEFC-4B22-BDE3-7701E0C83563}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D38C486E-AD92-424A-8995-D5962C946766}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D38C486E-AD92-424A-8995-D5962C946766}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D38C486E-AD92-424A-8995-D5962C946766}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D38C486E-AD92-424A-8995-D5962C946766}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3377F265-3861-48F1-B383-A870A7583A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3377F265-3861-48F1-B383-A870A7583A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3377F265-3861-48F1-B383-A870A7583A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3377F265-3861-48F1-B383-A870A7583A51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

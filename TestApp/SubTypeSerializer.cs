@@ -24,26 +24,26 @@ namespace TestApp
             this.objectCodec = objectCodec;
         }
 
-        public void Serialize(Writer writer, SerializerSession context, SubType obj)
+        public void Serialize(Writer writer, SerializerSession session, SubType obj)
         {
-            this.baseTypeSerializer.Serialize(writer, context, obj);
+            this.baseTypeSerializer.Serialize(writer, session, obj);
             writer.WriteEndBase(); // the base object is complete.
-            this.stringCodec.WriteField(writer, context, 0, typeof(string), obj.String);
-            this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
-            this.objectCodec.WriteField(writer, context, 1, typeof(object), obj.Ref);
-            this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
-            this.intCodec.WriteField(writer, context, 409, typeof(int), obj.Int);
-            /*writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
-            writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);*/
+            this.stringCodec.WriteField(writer, session, 0, typeof(string), obj.String);
+            this.intCodec.WriteField(writer, session, 1, typeof(int), obj.Int);
+            this.objectCodec.WriteField(writer, session, 1, typeof(object), obj.Ref);
+            this.intCodec.WriteField(writer, session, 1, typeof(int), obj.Int);
+            this.intCodec.WriteField(writer, session, 409, typeof(int), obj.Int);
+            /*writer.WriteFieldHeader(session, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
+            writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
         }
 
-        public void Deserialize(Reader reader, SerializerSession context, SubType obj)
+        public void Deserialize(Reader reader, SerializerSession session, SubType obj)
         {
             uint fieldId = 0;
-            this.baseTypeSerializer.Deserialize(reader, context, obj);
+            this.baseTypeSerializer.Deserialize(reader, session, obj);
             while (true)
             {
-                var header = reader.ReadFieldHeader(context);
+                var header = reader.ReadFieldHeader(session);
                 //Console.WriteLine(header);
                 if (header.IsEndBaseOrEndObject) break;
                 Type type;
@@ -51,25 +51,25 @@ namespace TestApp
                 switch (fieldId)
                 {
                     case 0:
-                        obj.String = this.stringCodec.ReadValue(reader, context, header);
+                        obj.String = this.stringCodec.ReadValue(reader, session, header);
                         /*type = header.FieldType ?? typeof(string);
                         Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
                     case 1:
-                        obj.Int = this.intCodec.ReadValue(reader, context, header);
+                        obj.Int = this.intCodec.ReadValue(reader, session, header);
                         break;
                     case 2:
-                        obj.Ref = this.objectCodec.ReadValue(reader, context, header);
+                        obj.Ref = this.objectCodec.ReadValue(reader, session, header);
                         /*type = header.FieldType ?? typeof(long);
                         Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
                     /*case 2:
-                        obj.Ref = this.refSerializer.ReadValue(reader, context, header);
+                        obj.Ref = this.refSerializer.ReadValue(reader, session, header);
                         /*type = header.FieldType ?? typeof(long);
                         Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");#1#
                         break;*/
                     default:
-                        reader.ConsumeUnknownField(context, header);
+                        reader.ConsumeUnknownField(session, header);
                         /*type = header.FieldType;
                         Console.WriteLine(
                             $"\tReading UNKNOWN field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/

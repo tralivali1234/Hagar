@@ -5,15 +5,15 @@ using Xunit;
 
 namespace Hagar.UnitTests
 {
-    public class StringCodecTests : FieldCodecTester<string, StringCodec>
+    /*public class StringCodecTests : FieldCodecTester<string, StringCodec>
     {
-        protected override StringCodec CreateCodec() => new StringCodec();
+        //protected override StringCodec CreateCodec() => new StringCodec();
 
-        protected override string CreateValue() => Guid.NewGuid().ToString();
+        //protected override string CreateValue() => Guid.NewGuid().ToString();
 
        /* [Fact]
-        public new void CorrectlyAdvancesReferenceCounter() => base.CorrectlyAdvancesReferenceCounter();*/
-    }
+        public new void CorrectlyAdvancesReferenceCounter() => base.CorrectlyAdvancesReferenceCounter();#1#
+    }*/
 
     public class Tester
     {

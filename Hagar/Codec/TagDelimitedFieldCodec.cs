@@ -23,12 +23,12 @@ namespace Hagar.Codec
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteStartObject(
             this Writer writer,
-            SerializerSession context,
+            SerializerSession session,
             uint fieldId,
             Type expectedType,
             Type actualType)
         {
-            writer.WriteFieldHeader(context, fieldId, expectedType, actualType, WireType.TagDelimited);
+            writer.WriteFieldHeader(session, fieldId, expectedType, actualType, WireType.TagDelimited);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

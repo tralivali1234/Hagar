@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using Hagar.Activator;
 using Hagar.Codec;
+using Hagar.Json;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
+using Newtonsoft.Json;
 
 namespace TestApp
 {
@@ -13,46 +15,63 @@ namespace TestApp
     {
         public static void Main(string[] args)
         {
-            var serializerCatalog = new SerializerCatalog(null);
-            var stringCodec = new StringCodec(serializerCatalog);
-            var intCodec = new IntegerCodec();
+            var codecs = new Dictionary<Type, IFieldCodec<object>>
+            {
+                [typeof(char)] = new CharCodec(),
+                [typeof(byte)] = new ByteCodec(),
+                [typeof(sbyte)] = new SByteCodec(),
+                [typeof(ushort)] = new UInt16Codec(),
+                [typeof(short)] = new Int16Codec(),
+                [typeof(uint)] = new UInt32Codec(),
+                [typeof(int)] = new Int32Codec(),
+                [typeof(ulong)] = new UInt64Codec(),
+                [typeof(long)] = new Int64Codec(),
+                [typeof(Guid)] = FieldCodecWrapper.Create<Guid, GuidCodec>(new GuidCodec()),
+            };
+            var genericCodecs = new List<IGenericCodec>();
+            var codecProvider = new CodecProvider(codecs, genericCodecs);
+
+            genericCodecs.Add(new JsonCodec(codecProvider));
+
+            var stringCodec = new StringCodec(codecProvider);
+            codecs[typeof(string)] = stringCodec;
+            codecs[typeof(object)] = new ObjectCodec(codecProvider);
+
+            var intCodec = new Int32Codec();
             var baseTypeSerializer = new BaseTypeSerializer<StringCodec>(stringCodec);
             var activator = new DefaultActivator<SubType>();
-            var objectCodec = new ObjectCodec(serializerCatalog);
+            var objectCodec = new ObjectCodec(codecProvider);
 
-            serializerCatalog.SetSerializer(
-                new Dictionary<Type, IFieldCodec<object>>
-                {
-                    [typeof(string)] = stringCodec,
-                });
-
-
-            var partialSerializer = new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>(
+            var partialSerializer = new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, Int32Codec>(
                 baseTypeSerializer,
                 stringCodec,
                 intCodec,
                 objectCodec);
             var serializer =
                 new ConcreteTypeSerializer<SubType, DefaultActivator<SubType>, SubTypeSerializer<
-                    BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>>(
+                    BaseTypeSerializer<StringCodec>, StringCodec, Int32Codec>>(
                     activator,
-                    partialSerializer, serializerCatalog);
-
-            Test(serializer, new SubType
-            {
-                BaseTypeString = "base",
-                String = "sub",
-                Int = 2,
-            });
-            Test(serializer, new SubType
-            {
-                BaseTypeString = "base",
-                String = "sub",
-                Int = int.MinValue,
-            });
+                    partialSerializer,
+                    codecProvider);
+            var testString = "hello, hagar";
+            Test(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "base",
+                    String = "sub",
+                    Int = 2,
+                });
+            Test(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "base",
+                    String = "sub",
+                    Int = int.MinValue,
+                });
 
             // Tests for duplicates
-            var testString = "hello, hagar";
             Test(
                 serializer,
                 new SubType
@@ -95,7 +114,7 @@ namespace TestApp
                     Int = 1,
                     Ref = testString
                 });
-
+            
             var self = new SubType
             {
                 BaseTypeString = "HOHOHO",
@@ -104,10 +123,21 @@ namespace TestApp
                 Int = 1
             };
             self.Ref = self;
-            Test(serializer, self );
+            Test(serializer, self);
+
+            self.Ref = Guid.NewGuid();
+            Test(serializer, self);
+
+            Test(
+                new AbstractTypeSerializer<object>(codecProvider),
+                new WhackyJsonType
+                {
+                    Number = 7,
+                    String = "bananas!"
+                });
         }
 
-        static void Test(IFieldCodec<SubType> serializer, SubType expected)
+        static void Test<T>(IFieldCodec<T> serializer, T expected)
         {
             var session = new SerializerSession();
             var writer = new Writer();
@@ -150,14 +180,14 @@ namespace TestApp
 
         static void TestSkip(IFieldCodec<SubType> serializer, SubType expected)
         {
-            var context = new SerializerSession();
+            var session = new SerializerSession();
             var writer = new Writer();
 
-            serializer.WriteField(writer, context, 0, typeof(SubType), expected);
+            serializer.WriteField(writer, session, 0, typeof(SubType), expected);
             
             var reader = new Reader(writer.ToBytes());
             var deserializationContext = new SerializerSession();
-            var initialHeader = reader.ReadFieldHeader(context);
+            var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();
             skipCodec.ReadValue(reader, deserializationContext, initialHeader);
             
@@ -192,5 +222,13 @@ namespace TestApp
             string refString = this.Ref == this ? "[this]" : $"[{this.Ref?.ToString() ?? "null"}]";
             return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Int)}: {this.Int}, Ref: {refString}";
         }
+    }
+
+    public class WhackyJsonType
+    {
+        public int Number { get; set; }
+        public string String { get; set; }
+
+        public override string ToString() => JsonConvert.SerializeObject(this);
     }
 }

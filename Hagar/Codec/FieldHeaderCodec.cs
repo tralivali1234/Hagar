@@ -10,9 +10,9 @@ namespace Hagar.Codec
     /// </summary>
     public static class FieldHeaderCodec
     {
-        public static void WriteFieldHeader(this Writer writer, SerializerSession context, uint fieldId, Type expectedType, Type actualType, WireType wireType)
+        public static void WriteFieldHeader(this Writer writer, SerializerSession session, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
-            var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(context, expectedType, actualType);
+            var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
             var field = default(Field);
             field.FieldIdDelta = fieldId;
             field.SchemaType = schemaType;
@@ -20,32 +20,32 @@ namespace Hagar.Codec
 
             writer.Write(field.Tag);
             if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldIdDelta);
-            if (field.HasExtendedSchemaType) writer.WriteType(context, schemaType, idOrReference, actualType);
+            if (field.HasExtendedSchemaType) writer.WriteType(session, schemaType, idOrReference, actualType);
         }
 
-        public static Field ReadFieldHeader(this Reader reader, SerializerSession context)
+        public static Field ReadFieldHeader(this Reader reader, SerializerSession session)
         {
             var field = default(Field);
             field.Tag = reader.ReadByte();
             if (field.HasExtendedFieldId) field.FieldIdDelta = reader.ReadVarUInt32();
-            if (field.IsSchemaTypeValid) field.FieldType = reader.ReadType(context, field.SchemaType);
+            if (field.IsSchemaTypeValid) field.FieldType = reader.ReadType(session, field.SchemaType);
             
             return field;
         }
 
-        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession context, Type expectedType, Type actualType)
+        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession session, Type expectedType, Type actualType)
         {
             if (actualType == expectedType)
             {
                 return (SchemaType.Expected, 0);
             }
 
-            if (context.WellKnownTypes.TryGetWellKnownTypeId(actualType, out uint typeId))
+            if (session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out uint typeId))
             {
                 return (SchemaType.WellKnown, typeId);
             }
 
-            if (context.ReferencedTypes.TryGetTypeReference(actualType, out uint reference))
+            if (session.ReferencedTypes.TryGetTypeReference(actualType, out uint reference))
             {
                 return (SchemaType.Referenced, reference);
             }
@@ -53,7 +53,7 @@ namespace Hagar.Codec
             return (SchemaType.Encoded, 0);
         }
 
-        private static void WriteType(this Writer writer, SerializerSession context, SchemaType schemaType, uint idOrReference, Type type)
+        private static void WriteType(this Writer writer, SerializerSession session, SchemaType schemaType, uint idOrReference, Type type)
         {
             switch (schemaType)
             {
@@ -64,7 +64,7 @@ namespace Hagar.Codec
                     writer.WriteVarInt(idOrReference);
                     break;
                 case SchemaType.Encoded:
-                    context.TypeCodec.Write(writer, type);
+                    session.TypeCodec.Write(writer, type);
                     break;
                 default:
                     ExceptionHelper.ThrowArgumentOutOfRange(nameof(schemaType));
@@ -72,7 +72,7 @@ namespace Hagar.Codec
             }
         }
 
-        private static Type ReadType(this Reader reader, SerializerSession context, SchemaType schemaType)
+        private static Type ReadType(this Reader reader, SerializerSession session, SchemaType schemaType)
         {
             switch (schemaType)
             {
@@ -80,13 +80,13 @@ namespace Hagar.Codec
                     return null;
                 case SchemaType.WellKnown:
                     var typeId = reader.ReadVarUInt32();
-                    return context.WellKnownTypes.GetWellKnownType(typeId);
+                    return session.WellKnownTypes.GetWellKnownType(typeId);
                 case SchemaType.Encoded:
-                    context.TypeCodec.TryRead(reader, out Type encoded);
+                    session.TypeCodec.TryRead(reader, out Type encoded);
                     return encoded;
                 case SchemaType.Referenced:
                     var reference = reader.ReadVarUInt32();
-                    return context.ReferencedTypes.GetReferencedType(reference);
+                    return session.ReferencedTypes.GetReferencedType(reference);
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }

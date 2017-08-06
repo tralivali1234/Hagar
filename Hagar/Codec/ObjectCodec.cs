@@ -8,25 +8,39 @@ namespace Hagar.Codec
 {
     public class ObjectCodec : IFieldCodec<object>
     {
-        private readonly ISerializerCatalog serializerCatalog;
+        private readonly ICodecProvider codecProvider;
+        private static readonly Type ObjectType = typeof(object);
 
-        public ObjectCodec(ISerializerCatalog serializerCatalog)
+        public ObjectCodec(ICodecProvider codecProvider)
         {
-            this.serializerCatalog = serializerCatalog;
+            this.codecProvider = codecProvider;
         }
 
-        public object ReadValue(Reader reader, SerializerSession context, Field field)
+        public object ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(reader, context, field, this.serializerCatalog);
-            reader.SkipField(context, field);
-            return new object();
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(reader, session, field, this.codecProvider);
+            if (field.FieldType == ObjectType || field.FieldType == null)
+            {
+                reader.ReadVarUInt32();
+                return new object();
+            }
+
+            var specificSerializer = this.codecProvider.GetCodec(field.FieldType);
+            return specificSerializer.ReadValue(reader, session, field);
         }
 
-        public void WriteField(Writer writer, SerializerSession context, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, context, fieldId, expectedType, value)) return;
-            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(object), WireType.LengthPrefixed);
-            writer.WriteVarInt(0);
+            var fieldType = value?.GetType();
+            if (fieldType == null || fieldType == ObjectType)
+            {
+                if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
+                writer.WriteFieldHeader(session, fieldId, expectedType, ObjectType, WireType.LengthPrefixed);
+                writer.WriteVarInt((uint) 0);
+            }
+
+            var specificSerializer = this.codecProvider.GetCodec(fieldType);
+            specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
         }
     }
 }

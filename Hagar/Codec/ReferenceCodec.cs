@@ -19,32 +19,32 @@ namespace Hagar.Codec
 
         public static bool TryWriteReferenceField(
             Writer writer,
-            SerializerSession context,
+            SerializerSession session,
             uint fieldId,
             Type expectedType,
             object value)
         {
-            if (!context.ReferencedObjects.GetOrAddReference(value, out uint reference))
+            if (!session.ReferencedObjects.GetOrAddReference(value, out uint reference))
             {
                 return false;
             }
 
-            writer.WriteFieldHeader(context, fieldId, expectedType, value?.GetType(), WireType.Reference);
+            writer.WriteFieldHeader(session, fieldId, expectedType, value?.GetType(), WireType.Reference);
             writer.WriteVarInt(reference);
             return true;
         }
 
-        public static T ReadReference<T>(Reader reader, SerializerSession context, Field field, ISerializerCatalog serializers)
+        public static T ReadReference<T>(Reader reader, SerializerSession session, Field field, ICodecProvider serializers)
         {
             var reference = reader.ReadVarUInt32();
-            if (!context.ReferencedObjects.TryGetReferencedObject(reference, out object value))
+            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
             {
-                ThrowReferenceNotFound<T>(reference, context);
+                ThrowReferenceNotFound<T>(reference, session);
             }
 
             if (value is UnknownFieldMarker marker)
             {
-                return DeserializeFromMarker<T>(reader, context, field, serializers, marker, reference);
+                return DeserializeFromMarker<T>(reader, session, field, serializers, marker, reference);
             }
 
             if (value is T) return (T)value;
@@ -53,9 +53,9 @@ namespace Hagar.Codec
 
         private static T DeserializeFromMarker<T>(
             Reader reader,
-            SerializerSession context,
+            SerializerSession session,
             Field field,
-            ISerializerCatalog serializers,
+            ICodecProvider serializers,
             UnknownFieldMarker marker,
             uint reference)
         {
@@ -64,28 +64,32 @@ namespace Hagar.Codec
             referencedReader.Advance(marker.Offset);
 
             // Determine the correct type for the field.
-            var fieldType = field.FieldType ?? marker.Field.FieldType ?? typeof(T);
+            var fieldType = marker.Field.FieldType ?? field.FieldType ?? typeof(T);
 
             // Get a serializer for that type.
-            var specificSerializer = serializers.GetSerializer(fieldType);
+            var specificSerializer = serializers.GetCodec(fieldType);
 
             // Reset the session's reference id so that the deserialized object overwrites the marker.
-            var originalCurrentReferenceId = context.ReferencedObjects.CurrentReferenceId;
-            context.ReferencedObjects.CurrentReferenceId = reference - 1;
+            var originalCurrentReferenceId = session.ReferencedObjects.CurrentReferenceId;
+            session.ReferencedObjects.CurrentReferenceId = reference - 1;
 
             // Deserialize the object, replacing the marker in the session.
-            var result = (T) specificSerializer.ReadValue(referencedReader, context, marker.Field);
-
-            // Revert the reference id.
-            context.ReferencedObjects.CurrentReferenceId = originalCurrentReferenceId;
-            return result;
+            try
+            {
+                return (T) specificSerializer.ReadValue(referencedReader, session, marker.Field);
+            }
+            finally
+            {
+                // Revert the reference id.
+                session.ReferencedObjects.CurrentReferenceId = originalCurrentReferenceId;
+            }
         }
 
-        public static void RecordObject(SerializerSession context, object value) => context.ReferencedObjects.RecordReferenceField(value);
+        public static void RecordObject(SerializerSession session, object value) => session.ReferencedObjects.RecordReferenceField(value);
 
-        private static void ThrowReferenceNotFound<T>(uint reference, SerializerSession context)
+        private static void ThrowReferenceNotFound<T>(uint reference, SerializerSession session)
         {
-            throw new ReferenceNotFoundException(typeof(T), reference, context.ReferencedObjects.CopyReferenceTable());
+            throw new ReferenceNotFoundException(typeof(T), reference, session.ReferencedObjects.CopyReferenceTable());
         }
     }
 }

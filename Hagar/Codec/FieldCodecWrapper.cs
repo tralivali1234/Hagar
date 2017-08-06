@@ -5,6 +5,14 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
+    public static class FieldCodecWrapper
+    {
+        public static IFieldCodec<object> Create<TField, TCodec>(TCodec codec) where TCodec : IFieldCodec<TField>
+        {
+            return new FieldCodecWrapper<TField, TCodec>(codec);
+        }
+    }
+
     public class FieldCodecWrapper<TField, TCodec> : IFieldCodec<object> where TCodec : IFieldCodec<TField>
     {
         private readonly TCodec codec;

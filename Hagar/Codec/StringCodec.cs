@@ -9,16 +9,16 @@ namespace Hagar.Codec
 {
     public class StringCodec : FieldCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        private readonly ISerializerCatalog serializerCatalog;
-        public StringCodec(ISerializerCatalog serializerCatalog)
+        private readonly ICodecProvider codecProvider;
+        public StringCodec(ICodecProvider codecProvider)
         {
-            this.serializerCatalog = serializerCatalog;
+            this.codecProvider = codecProvider;
         }
 
         string IFieldCodec<string>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<string>(reader, session, field, this.serializerCatalog);
+                return ReferenceCodec.ReadReference<string>(reader, session, field, this.codecProvider);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
             var bytes = reader.ReadBytes((int) length);

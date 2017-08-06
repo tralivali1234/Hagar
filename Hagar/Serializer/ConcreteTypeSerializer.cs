@@ -21,13 +21,13 @@ namespace Hagar.Serializer
     {
         private readonly TActivator activator;
         private readonly TSerializer serializer;
-        private readonly ISerializerCatalog serializerCatalog;
+        private readonly ICodecProvider codecProvider;
 
-        public ConcreteTypeSerializer(TActivator activator, TSerializer serializer, ISerializerCatalog serializerCatalog)
+        public ConcreteTypeSerializer(TActivator activator, TSerializer serializer, ICodecProvider codecProvider)
         {
             this.activator = activator;
             this.serializer = serializer;
-            this.serializerCatalog = serializerCatalog;
+            this.codecProvider = codecProvider;
         }
 
         public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, TField value)
@@ -42,7 +42,7 @@ namespace Hagar.Serializer
             }
             else
             {
-                var specificSerializer = this.serializerCatalog.GetSerializer(fieldType);
+                var specificSerializer = this.codecProvider.GetCodec(fieldType);
                 if (specificSerializer != null)
                 {
                     specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
@@ -56,7 +56,7 @@ namespace Hagar.Serializer
 
         public TField ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.serializerCatalog);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.codecProvider);
             var fieldType = field.FieldType;
             if (fieldType == null || fieldType == typeof(TField))
             {
@@ -67,7 +67,7 @@ namespace Hagar.Serializer
             }
 
             // The type is a descendant, not an exact match, so get the specific serializer for it.
-            var specificSerializer = this.serializerCatalog.GetSerializer(fieldType);
+            var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 return (TField) specificSerializer.ReadValue(reader, session, field);

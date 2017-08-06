@@ -13,18 +13,23 @@ namespace Hagar.Serializer
     /// <typeparam name="TField"></typeparam>
     public class AbstractTypeSerializer<TField> : IFieldCodec<TField> where TField : class
     {
-        private readonly ISerializerCatalog serializerCatalog;
+        private readonly ICodecProvider codecProvider;
 
-        public AbstractTypeSerializer(ISerializerCatalog serializerCatalog)
+        public AbstractTypeSerializer(ICodecProvider codecProvider)
         {
-            this.serializerCatalog = serializerCatalog;
+            this.codecProvider = codecProvider;
         }
 
         public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, TField value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
+            if (value == null)
+            {
+                ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, null);
+                return;
+            }
+
             var fieldType = value.GetType();
-            var specificSerializer = this.serializerCatalog.GetSerializer(fieldType);
+            var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
@@ -37,11 +42,11 @@ namespace Hagar.Serializer
 
         public TField ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.serializerCatalog);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.codecProvider);
             var fieldType = field.FieldType;
             if (fieldType == null) ThrowMissingFieldType();
 
-            var specificSerializer = this.serializerCatalog.GetSerializer(fieldType);
+            var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 return (TField)specificSerializer.ReadValue(reader, session, field);
