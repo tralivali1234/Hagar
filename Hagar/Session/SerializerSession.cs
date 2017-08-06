@@ -2,7 +2,7 @@ using Hagar.TypeSystem;
 
 namespace Hagar.Session
 {
-    public class SerializationContext
+    public class SerializerSession
     {
         public TypeCodec TypeCodec { get; } = new TypeCodec();
         public WellKnownTypeCollection WellKnownTypes { get; } = new WellKnownTypeCollection();

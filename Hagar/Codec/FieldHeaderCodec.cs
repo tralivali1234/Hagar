@@ -10,7 +10,7 @@ namespace Hagar.Codec
     /// </summary>
     public static class FieldHeaderCodec
     {
-        public static void WriteFieldHeader(this Writer writer, SerializationContext context, uint fieldId, Type expectedType, Type actualType, WireType wireType)
+        public static void WriteFieldHeader(this Writer writer, SerializerSession context, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
             var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(context, expectedType, actualType);
             var field = default(Field);
@@ -23,7 +23,7 @@ namespace Hagar.Codec
             if (field.HasExtendedSchemaType) writer.WriteType(context, schemaType, idOrReference, actualType);
         }
 
-        public static Field ReadFieldHeader(this Reader reader, SerializationContext context)
+        public static Field ReadFieldHeader(this Reader reader, SerializerSession context)
         {
             var field = default(Field);
             field.Tag = reader.ReadByte();
@@ -33,7 +33,7 @@ namespace Hagar.Codec
             return field;
         }
 
-        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializationContext context, Type expectedType, Type actualType)
+        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession context, Type expectedType, Type actualType)
         {
             if (actualType == expectedType)
             {
@@ -53,7 +53,7 @@ namespace Hagar.Codec
             return (SchemaType.Encoded, 0);
         }
 
-        private static void WriteType(this Writer writer, SerializationContext context, SchemaType schemaType, uint idOrReference, Type type)
+        private static void WriteType(this Writer writer, SerializerSession context, SchemaType schemaType, uint idOrReference, Type type)
         {
             switch (schemaType)
             {
@@ -72,7 +72,7 @@ namespace Hagar.Codec
             }
         }
 
-        private static Type ReadType(this Reader reader, SerializationContext context, SchemaType schemaType)
+        private static Type ReadType(this Reader reader, SerializerSession context, SchemaType schemaType)
         {
             switch (schemaType)
             {

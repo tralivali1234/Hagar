@@ -45,6 +45,13 @@ namespace Hagar
         }
     }
 
+    public class FieldTypeMissingException : HagarException
+    {
+        public FieldTypeMissingException(Type type) : base($"Attempted to deserialize an instance of abstract type {type}. No concrete type was provided.")
+        {
+        }
+    }
+
     public class ExtendedWireTypeInvalidException : HagarException
     {
         public ExtendedWireTypeInvalidException() : base(

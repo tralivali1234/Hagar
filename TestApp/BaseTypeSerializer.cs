@@ -16,12 +16,13 @@ namespace TestApp
             this.stringCodec = stringCodec;
         }
 
-        public void Serialize(Writer writer, SerializationContext context, BaseType obj)
+        public void Serialize(Writer writer, SerializerSession context, BaseType obj)
         {
             this.stringCodec.WriteField(writer, context, 0, typeof(string), obj.BaseTypeString);
+            this.stringCodec.WriteField(writer, context, 234, typeof(string), obj.BaseTypeString);
         }
 
-        public void Deserialize(Reader reader, SerializationContext context, BaseType obj)
+        public void Deserialize(Reader reader, SerializerSession context, BaseType obj)
         {
             uint fieldId = 0;
             while (true)
@@ -45,6 +46,7 @@ namespace TestApp
                         /*var type = header.FieldType;
                         Console.WriteLine(
                             $"\tReading UNKNOWN field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
+                        reader.SkipField(context, header);
                         break;
                     }
                 }

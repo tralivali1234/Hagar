@@ -5,7 +5,7 @@ namespace Hagar.Activator
 {
     public class DefaultActivator<T> : IActivator<T>
     {
-        public T Create(Reader reader, SerializationContext context)
+        public T Create(Reader reader, Session.SerializerSession context)
         {
             return System.Activator.CreateInstance<T>();
         }

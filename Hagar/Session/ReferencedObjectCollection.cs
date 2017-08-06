@@ -21,11 +21,13 @@ namespace Hagar.Session
             return this.references.TryGetValue(reference, out value);
         }
 
-        public void AddReference(object value)
+        public void RecordReferenceField(object value)
         {
             if (value == null) return;
             this.references.Add(++this.currentReference, value);
         }
+
+        public void MarkValueField() => ++this.currentReference;
 
         public bool GetOrAddReference(object value, out uint reference)
         {

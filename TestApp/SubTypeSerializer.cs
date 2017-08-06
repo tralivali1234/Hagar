@@ -3,7 +3,6 @@ using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
-using Hagar.WireProtocol;
 
 namespace TestApp
 {
@@ -23,17 +22,20 @@ namespace TestApp
             this.intCodec = intCodec;
         }
 
-        public void Serialize(Writer writer, SerializationContext context, SubType obj)
+        public void Serialize(Writer writer, SerializerSession context, SubType obj)
         {
             this.baseTypeSerializer.Serialize(writer, context, obj);
             writer.WriteEndBase(); // the base object is complete.
             this.stringCodec.WriteField(writer, context, 0, typeof(string), obj.String);
             this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
-            writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
-            writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);
+            this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
+            this.intCodec.WriteField(writer, context, 409, typeof(int), obj.Int);
+            this.intCodec.WriteField(writer, context, 1, typeof(int), obj.Int);
+            /*writer.WriteFieldHeader(context, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
+            writer.WriteFieldHeader(context, 1020, typeof(object), typeof(Program), WireType.Reference);*/
         }
 
-        public void Deserialize(Reader reader, SerializationContext context, SubType obj)
+        public void Deserialize(Reader reader, SerializerSession context, SubType obj)
         {
             uint fieldId = 0;
             this.baseTypeSerializer.Deserialize(reader, context, obj);
@@ -56,7 +58,13 @@ namespace TestApp
                         /*type = header.FieldType ?? typeof(long);
                         Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
+                    /*case 2:
+                        obj.Ref = this.refSerializer.ReadValue(reader, context, header);
+                        /*type = header.FieldType ?? typeof(long);
+                        Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");#1#
+                        break;*/
                     default:
+                        reader.SkipField(context, header);
                         /*type = header.FieldType;
                         Console.WriteLine(
                             $"\tReading UNKNOWN field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/

@@ -19,11 +19,10 @@ namespace TestApp
                 baseTypeSerializer,
                 stringCodec, intCodec);
             var serializer =
-                new ObjectFieldSerializer<SubType, DefaultActivator<SubType>, SubTypeSerializer<
+                new ConcreteTypeSerializer<SubType, DefaultActivator<SubType>, SubTypeSerializer<
                     BaseTypeSerializer<StringCodec>, StringCodec, IntegerCodec>>(
                     activator,
-                    partialSerializer);
-
+                    partialSerializer, new SerializerCatalog(null));
 
             Test(serializer, new SubType
             {
@@ -56,23 +55,55 @@ namespace TestApp
                     String = null,
                     Int = 1
                 });
+            Test(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "hello, hagar",
+                    String = null,
+                    Int = 1
+                });
+            TestSkip(
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "hello, hagar",
+                    String = null,
+                    Int = 1
+                });
         }
 
         static void Test(IFieldCodec<SubType> serializer, SubType expected)
         {
-            var context = new SerializationContext();
+            var session = new SerializerSession();
             var writer = new Writer();
 
-            serializer.WriteField(writer, context, 0, typeof(SubType), expected);
+            serializer.WriteField(writer, session, 0, typeof(SubType), expected);
 
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes");
             var reader = new Reader(writer.ToBytes());
-            var deserializationContext = new SerializationContext();
-            var initialHeader = reader.ReadFieldHeader(context);
+            var deserializationContext = new SerializerSession();
+            var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
             var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
+        }
+
+        static void TestSkip(IFieldCodec<SubType> serializer, SubType expected)
+        {
+            var context = new SerializerSession();
+            var writer = new Writer();
+
+            serializer.WriteField(writer, context, 0, typeof(SubType), expected);
+            
+            var reader = new Reader(writer.ToBytes());
+            var deserializationContext = new SerializerSession();
+            var initialHeader = reader.ReadFieldHeader(context);
+            var skipCodec = new SkipFieldCodec();
+            skipCodec.ReadValue(reader, deserializationContext, initialHeader);
+            
+            Console.WriteLine($"Skipped {reader.CurrentPosition}/{reader.Length} bytes.");
         }
     }
 
@@ -82,7 +113,7 @@ namespace TestApp
 
         public override string ToString()
         {
-            return $"{nameof(BaseTypeString)}: {BaseTypeString}";
+            return $"{nameof(this.BaseTypeString)}: {this.BaseTypeString}";
         }
     }
 
@@ -93,10 +124,14 @@ namespace TestApp
 
         // 1
         public int Int { get; set; }
+        
+        // 3
+        public BaseType Ref { get; set; }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {nameof(String)}: {String}, {nameof(Int)}: {Int}";
+            string refString = this.Ref == this ? "[this]" : $"[{this.Ref?.ToString() ?? "null"}]";
+            return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Int)}: {this.Int}, Ref: {refString}";
         }
     }
 }

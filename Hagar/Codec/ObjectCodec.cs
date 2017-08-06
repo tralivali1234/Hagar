@@ -5,38 +5,19 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public static class ObjectCodec
+    public class ObjectCodec : IFieldCodec<object>
     {
-        private static readonly byte EndObjectTag = new Tag
+        public object ReadValue(Reader reader, SerializerSession context, Field field)
         {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.EndTagDelimited
-        };
-
-        private static readonly byte EndBaseFieldsTag = new Tag
-        {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.EndBaseFields
-        };
-
-        public static void WriteStartObject(
-            this Writer writer,
-            SerializationContext context,
-            uint fieldId,
-            Type expectedType,
-            Type actualType)
-        {
-            writer.WriteFieldHeader(context, fieldId, expectedType, actualType, WireType.TagDelimited);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<string>(reader, context);
+            reader.SkipField(context, field);
+            return new object();
         }
 
-        public static void WriteEndObject(this Writer writer)
+        public void WriteField(Writer writer, SerializerSession context, uint fieldId, Type expectedType, object value)
         {
-            writer.Write((byte) EndObjectTag);
-        }
-
-        public static void WriteEndBase(this Writer writer)
-        {
-            writer.Write((byte) EndBaseFieldsTag);
+            if (ReferenceCodec.TryWriteReferenceField(writer, context, fieldId, expectedType, value)) return;
+            writer.WriteFieldHeader(context, fieldId, expectedType, typeof(object), WireType.LengthPrefixed);
         }
     }
 }

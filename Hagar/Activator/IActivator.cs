@@ -7,6 +7,6 @@ namespace Hagar.Activator
     [SuppressMessage("ReSharper", "TypeParameterCanBeVariant")]
     public interface IActivator<T>
     {
-        T Create(Reader reader, SerializationContext context);
+        T Create(Reader reader, Session.SerializerSession context);
     }
 }

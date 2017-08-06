@@ -13,7 +13,7 @@ namespace Hagar.Utilities
         /// <inheritdoc />
         bool IEqualityComparer<object>.Equals(object x, object y)
         {
-            return object.ReferenceEquals(x, y);
+            return ReferenceEquals(x, y);
         }
 
         /// <inheritdoc />

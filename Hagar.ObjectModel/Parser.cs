@@ -7,7 +7,7 @@ namespace Hagar.ObjectModel
 {
     public class Parser
     {
-        public IEnumerable<IToken> Parse(Reader reader, SerializationContext context)
+        public IEnumerable<IToken> Parse(Reader reader, SerializerSession context)
         {
             var depth = 0;
             do

@@ -7,9 +7,18 @@ namespace Hagar.Codec
 {
     public static class ReferenceCodec
     {
+        /// <summary>
+        /// Indicates that the field being serialized or deserialized is a value type.
+        /// </summary>
+        /// <param name="session">The serializer session.</param>
+        public static void MarkValueField(SerializerSession session)
+        {
+            session.ReferencedObjects.MarkValueField();
+        }
+
         public static bool TryWriteReferenceField(
             Writer writer,
-            SerializationContext context,
+            SerializerSession context,
             uint fieldId,
             Type expectedType,
             object value)
@@ -24,7 +33,7 @@ namespace Hagar.Codec
             return true;
         }
 
-        public static T ReadReference<T>(Reader reader, SerializationContext context)
+        public static T ReadReference<T>(Reader reader, SerializerSession context)
         {
             var reference = reader.ReadVarUInt32();
             if (context.ReferencedObjects.TryGetReferencedObject(reference, out object value)) return (T) value;
@@ -33,9 +42,9 @@ namespace Hagar.Codec
             return default(T);
         }
         
-        public static void RecordObject(SerializationContext context, object value) => context.ReferencedObjects.AddReference(value);
+        public static void RecordObject(SerializerSession context, object value) => context.ReferencedObjects.RecordReferenceField(value);
 
-        private static void ThrowReferenceNotFound<T>(uint reference, SerializationContext context)
+        private static void ThrowReferenceNotFound<T>(uint reference, SerializerSession context)
         {
             throw new ReferenceNotFoundException(typeof(T), reference, context.ReferencedObjects.CopyReferenceTable());
         }
