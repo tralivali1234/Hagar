@@ -345,15 +345,7 @@ namespace Hagar.Utilities
             this.currentBuffer[this.currentOffset++] = b;
             return this;
         }
-
-        public ByteArrayBuilder Append(Span<byte> span)
-        {
-            var length = span.Length;
-            this.EnsureRoomFor(length);
-            for (var count = 0; count < length; ++count) this.currentBuffer[this.currentOffset++] = span[count];
-            return this;
-        }
-
+        
         public ByteArrayBuilder Append(sbyte b)
         {
             this.EnsureRoomFor(1);

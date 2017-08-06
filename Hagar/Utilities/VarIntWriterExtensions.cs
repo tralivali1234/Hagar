@@ -9,52 +9,52 @@ namespace Hagar.Utilities
         public static void WriteVarInt(this Writer writer, int value) => WriteVarInt(writer, ZigZagEncode(value));
         public static void WriteVarInt(this Writer writer, long value) => WriteVarInt(writer, ZigZagEncode(value));
 
-        public static unsafe void WriteVarInt(this Writer writer, byte value)
+        public static void WriteVarInt(this Writer writer, byte value)
         {
-            byte* scratch = stackalloc byte[2];
+            var scratch = new byte[2];
             var count = 0;
             do
             {
                 scratch[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
             scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(new Span<byte>(scratch, count));
+            writer.Write(scratch, 0, count);
         }
 
-        public static unsafe void WriteVarInt(this Writer writer, ushort value)
+        public static void WriteVarInt(this Writer writer, ushort value)
         {
-            byte* scratch = stackalloc byte[3];
+            var scratch = new byte[3];
             var count = 0;
             do
             {
                 scratch[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
             scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(new Span<byte>(scratch, count));
+            writer.Write(scratch, 0, count);
         }
 
-        public static unsafe void WriteVarInt(this Writer writer, uint value)
+        public static void WriteVarInt(this Writer writer, uint value)
         {
-            byte* scratch = stackalloc byte[5];
+            var scratch = new byte[5];
             var count = 0;
             do
             {
                 scratch[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
             scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(new Span<byte>(scratch, count));
+            writer.Write(scratch, 0, count);
         }
 
-        public static unsafe void WriteVarInt(this Writer writer, ulong value)
+        public static void WriteVarInt(this Writer writer, ulong value)
         {
-            byte* scratch = stackalloc byte[10];
+            var scratch = new byte[10];
             var count = 0;
             do
             {
                 scratch[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
             scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(new Span<byte>(scratch, count));
+            writer.Write(scratch, 0, count);
         }
 
         private static byte ZigZagEncode(sbyte value)
