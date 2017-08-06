@@ -5,7 +5,6 @@ namespace Hagar.Session
 {
     public class ReferencedObjectCollection
     {
-        private uint currentReference;
         private readonly Dictionary<uint, object> references = new Dictionary<uint, object>();
         private readonly Dictionary<object, uint> referenceToIdMap = new Dictionary<object, uint>(ReferenceEqualsComparer.Instance);
 
@@ -24,10 +23,10 @@ namespace Hagar.Session
         public void RecordReferenceField(object value)
         {
             if (value == null) return;
-            this.references.Add(++this.currentReference, value);
+            this.references.Add(++this.CurrentReferenceId, value);
         }
 
-        public void MarkValueField() => ++this.currentReference;
+        public void MarkValueField() => ++this.CurrentReferenceId;
 
         public bool GetOrAddReference(object value, out uint reference)
         {
@@ -41,20 +40,20 @@ namespace Hagar.Session
             if (this.referenceToIdMap.TryGetValue(value, out reference)) return true;
             
             // Add the reference.
-            reference = ++this.currentReference;
-            this.referenceToIdMap.Add(value, this.currentReference);
+            reference = ++this.CurrentReferenceId;
+            this.referenceToIdMap.Add(value, this.CurrentReferenceId);
             return false;
         }
 
         public Dictionary<uint, object> CopyReferenceTable() => new Dictionary<uint, object>(this.references);
 
-        public uint CurrentReferenceId => this.currentReference;
+        public uint CurrentReferenceId { get; set; }
 
         public void Reset()
         {
             this.references.Clear();
             this.referenceToIdMap.Clear();
-            this.currentReference = 0;
+            this.CurrentReferenceId = 0;
         }
     }
 }

@@ -66,6 +66,17 @@ namespace Hagar.Utilities
             return result;
         }
 
+        public static int GetVarIntLength(this Reader reader)
+        {
+            var count = 1;
+            while (true)
+            {
+                var next = reader.ReadByte();
+                if ((next & 0x80) == 0) return count;
+                count++;
+            }
+        }
+
         public static ulong ReadVarUInt64(this Reader reader)
         {
             ulong next = reader.ReadByte();

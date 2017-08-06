@@ -13,7 +13,7 @@ namespace Hagar.Utilities
     /// </summary>
     public class Reader
     {
-        private IList<ArraySegment<byte>> buffers;
+        private List<ArraySegment<byte>> buffers;
         private int buffersCount;
         private int currentSegmentIndex;
         private ArraySegment<byte> currentSegment;
@@ -33,7 +33,7 @@ namespace Hagar.Utilities
         /// </summary>
         /// <param name="input">Input binary data to be tokenized.</param>
         public Reader(byte[] input)
-            : this((IList<ArraySegment<byte>>) new List<ArraySegment<byte>> { new ArraySegment<byte>(input) })
+            : this(new List<ArraySegment<byte>> { new ArraySegment<byte>(input) })
         {
         }
 
@@ -41,7 +41,7 @@ namespace Hagar.Utilities
         /// Create a new BinaryTokenStreamReader to read from the specified input buffers.
         /// </summary>
         /// <param name="buffs">The list of ArraySegments to use for the data.</param>
-        public Reader(IList<ArraySegment<byte>> buffs)
+        public Reader(List<ArraySegment<byte>> buffs)
         {
             this.Reset(buffs);
             this.Trace("Starting new stream reader");
@@ -51,7 +51,7 @@ namespace Hagar.Utilities
         /// Resets this instance with the provided data.
         /// </summary>
         /// <param name="buffs">The underlying buffers.</param>
-        public void Reset(IList<ArraySegment<byte>> buffs)
+        public void Reset(List<ArraySegment<byte>> buffs)
         {
             this.buffers = buffs;
             this.totalProcessedBytes = 0;
@@ -76,7 +76,11 @@ namespace Hagar.Utilities
         /// </summary>
         /// <param name="buff">ArraySegment to use for the data.</param>
         public Reader(ArraySegment<byte> buff)
-            : this((IList<ArraySegment<byte>>) new[] { buff })
+            : this(
+                new List<ArraySegment<byte>>
+                {
+                    buff
+                })
         {
         }
 
@@ -92,9 +96,14 @@ namespace Hagar.Utilities
         /// Creates a copy of the current stream reader.
         /// </summary>
         /// <returns>The new copy</returns>
-        public Reader Copy()
+        public List<ArraySegment<byte>> GetBuffers()
         {
-            return new Reader(this.buffers);
+            return this.buffers;
+        }
+
+        public void Advance(int bytes)
+        {
+            this.CheckLength(bytes, out int offset);
         }
 
         private void StartNextSegment()

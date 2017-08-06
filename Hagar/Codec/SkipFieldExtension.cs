@@ -23,6 +23,7 @@ namespace Hagar.Codec
 
     public static class SkipFieldExtension
     {
+
         public static void SkipField(this Reader reader, SerializerSession session, Field field)
         {
             switch (field.WireType)
@@ -57,19 +58,19 @@ namespace Hagar.Codec
             }
         }
 
-        private static void ThrowUnexpectedExtendedWireType(Field field)
+        internal static void ThrowUnexpectedExtendedWireType(Field field)
         {
             throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(ExtendedWireType)} value [{field.ExtendedWireType}] in field {field} while skipping field.");
         }
 
-        private static void ThrowUnexpectedWireType(Field field)
+        internal static void ThrowUnexpectedWireType(Field field)
         {
             throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(WireType)} value [{field.WireType}] in field {field} while skipping field.");
         }
 
-        private static void SkipLengthPrefixedField(Reader reader)
+        internal static void SkipLengthPrefixedField(Reader reader)
         {
             var length = reader.ReadVarUInt32();
             while (length > sizeof(ulong))
@@ -97,6 +98,17 @@ namespace Hagar.Codec
                 var field = reader.ReadFieldHeader(session);
                 if (field.IsEndObject) break;
                 reader.SkipField(session, field);
+            }
+        }
+
+        private static void ConsumeTagDelimitedField(Reader reader, SerializerSession session)
+        {
+            while (true)
+            {
+                var field = reader.ReadFieldHeader(session);
+                if (field.IsEndObject) break;
+                if (field.IsEndBaseFields) continue;
+                reader.ConsumeUnknownField(session, field);
             }
         }
     }
