@@ -48,6 +48,8 @@ namespace Hagar.Session
 
         public Dictionary<uint, object> CopyReferenceTable() => new Dictionary<uint, object>(this.references);
 
+        public uint CurrentReferenceId => this.currentReference;
+
         public void Reset()
         {
             this.references.Clear();
