@@ -14,6 +14,11 @@ namespace Hagar.Codec
 
         public int Offset { get; }
         public Field Field { get; }
+
+        public override string ToString()
+        {
+            return $"[{nameof(UnknownFieldMarker)}] {nameof(this.Offset)}: {this.Offset}, {nameof(this.Field)}: {this.Field}";
+        }
     }
 
     public static class ConsumeFieldExtension

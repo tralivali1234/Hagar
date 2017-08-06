@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
@@ -8,12 +9,19 @@ namespace Hagar.Codec
 {
     public class StringCodec : FieldCodecBase<string, StringCodec>, IFieldCodec<string>
     {
+        private readonly ISerializerCatalog serializerCatalog;
+        public StringCodec(ISerializerCatalog serializerCatalog)
+        {
+            this.serializerCatalog = serializerCatalog;
+        }
+
         string IFieldCodec<string>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<string>(reader, session);
+            if (field.WireType == WireType.Reference)
+                return ReferenceCodec.ReadReference<string>(reader, session, field, this.serializerCatalog);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
-            var bytes = reader.ReadBytes((int)length);
+            var bytes = reader.ReadBytes((int) length);
             var result = Encoding.UTF8.GetString(bytes);
             ReferenceCodec.RecordObject(session, result);
             return result;

@@ -37,7 +37,7 @@ namespace Hagar.Serializer
 
         public TField ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.serializerCatalog);
             var fieldType = field.FieldType;
             if (fieldType == null) ThrowMissingFieldType();
 

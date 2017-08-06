@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Collections.Generic;
 using Hagar.Activator;
 using Hagar.Codec;
@@ -50,7 +50,7 @@ namespace Hagar.Serializer
 
         public TField ReadValue(Reader reader, SerializerSession context, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, context);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, context, field, this.serializerCatalog);
             var fieldType = field.FieldType;
             if (fieldType == null || fieldType == typeof(TField))
             {
@@ -76,4 +76,4 @@ namespace Hagar.Serializer
             throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
         }
     }
-}
+}*/
