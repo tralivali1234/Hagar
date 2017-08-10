@@ -5,9 +5,13 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class FloatCodec : IFieldCodec<float>, IFieldCodec<double>, IFieldCodec<decimal>
+    public class FloatCodec : FieldCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
-        void IFieldCodec<float>.WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType,
+        void IFieldCodec<float>.WriteField(
+            Writer writer,
+            SerializerSession session,
+            uint fieldId,
+            Type expectedType,
             float value)
         {
             ReferenceCodec.MarkValueField(session);
@@ -18,11 +22,47 @@ namespace Hagar.Codec
         float IFieldCodec<float>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
-            return reader.ReadFloat();
+            switch (field.WireType)
+            {
+                case WireType.Fixed32:
+                    return reader.ReadFloat();
+                case WireType.Fixed64:
+                {
+                    var value = reader.ReadDouble();
+                    if ((value > float.MaxValue || value < float.MinValue) && !double.IsInfinity(value) && !double.IsNaN(value))
+                    {
+                        ThrowValueOutOfRange(value);
+                    }
+
+                    return (float) value;
+                }
+
+                case WireType.Fixed128:
+                    // Decimal has a smaller range, but higher precision than float.
+                    return (float) reader.ReadDecimal();
+
+                default:
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+            }
         }
 
-        void IFieldCodec<double>.WriteField(Writer writer, SerializerSession session, uint fieldId,
-            Type expectedType, double value)
+        private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
+            $"{nameof(wireType)} {wireType} is not supported by this codec.");
+
+        private static void ThrowValueOutOfRange<T>(T value) => throw new ArgumentOutOfRangeException(
+            $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(float)}.");
+    }
+
+    public class DoubleCodec : FieldCodecBase<double, DoubleCodec>, IFieldCodec<double>
+    {
+
+        void IFieldCodec<double>.WriteField(
+            Writer writer,
+            SerializerSession session,
+            uint fieldId,
+            Type expectedType,
+            double value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldId, expectedType, typeof(double), WireType.Fixed64);
@@ -32,9 +72,26 @@ namespace Hagar.Codec
         double IFieldCodec<double>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
-            return reader.ReadDouble();
+            switch (field.WireType)
+            {
+                case WireType.Fixed32:
+                    return reader.ReadFloat();
+                case WireType.Fixed64:
+                    return reader.ReadDouble();
+                case WireType.Fixed128:
+                    return (double) reader.ReadDecimal();
+                default:
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+            }
         }
 
+        private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
+            $"{nameof(wireType)} {wireType} is not supported by this codec.");
+    }
+
+    public class DecimalCodec : FieldCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
+    {
         void IFieldCodec<decimal>.WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, decimal value)
         {
             ReferenceCodec.MarkValueField(session);
@@ -45,7 +102,41 @@ namespace Hagar.Codec
         decimal IFieldCodec<decimal>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
-            return reader.ReadDecimal();
+            switch (field.WireType)
+            {
+                case WireType.Fixed32:
+                {
+                    var value = reader.ReadFloat();
+                    if (value > (float) decimal.MaxValue || value < (float) decimal.MinValue)
+                    {
+                        ThrowValueOutOfRange(value);
+                    }
+
+                    return (decimal) value;
+                }
+                case WireType.Fixed64:
+                {
+                    var value = reader.ReadDouble();
+                    if (value > (double) decimal.MaxValue || value < (double) decimal.MinValue)
+                    {
+                        ThrowValueOutOfRange(value);
+                    }
+
+                    return (decimal) value;
+                }
+                case WireType.Fixed128:
+                    return reader.ReadDecimal();
+                default:
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+            }
         }
+
+        private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
+            $"{nameof(wireType)} {wireType} is not supported by this codec.");
+
+        private static void ThrowValueOutOfRange<T>(T value) => throw new ArgumentOutOfRangeException(
+            $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(decimal)}.");
+
     }
 }

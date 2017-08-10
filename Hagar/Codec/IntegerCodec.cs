@@ -5,6 +5,27 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
+    public class BoolCodec : FieldCodecBase<bool, BoolCodec>, IFieldCodec<bool>
+    {
+        void IFieldCodec<bool>.WriteField(
+            Writer writer,
+            SerializerSession session,
+            uint fieldId,
+            Type expectedType,
+            bool value)
+        {
+            ReferenceCodec.MarkValueField(session);
+            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(bool), WireType.VarInt);
+            writer.WriteVarInt(value ? 1 : 0);
+        }
+
+        bool IFieldCodec<bool>.ReadValue(Reader reader, SerializerSession session, Field field)
+        {
+            ReferenceCodec.MarkValueField(session);
+            return reader.ReadUInt8(field.WireType) == 1;
+        }
+    }
+    
     public class CharCodec : FieldCodecBase<char, CharCodec>, IFieldCodec<char>
     {
         void IFieldCodec<char>.WriteField(
@@ -22,7 +43,7 @@ namespace Hagar.Codec
         char IFieldCodec<char>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
-            return (char) reader.ReadUInt8(field.WireType);
+            return (char)reader.ReadUInt8(field.WireType);
         }
     }
 
