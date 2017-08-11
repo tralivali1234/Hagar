@@ -17,6 +17,7 @@ namespace TestApp
         {
             var codecs = new Dictionary<Type, IFieldCodec<object>>
             {
+                [typeof(bool)] = new BoolCodec(),
                 [typeof(char)] = new CharCodec(),
                 [typeof(byte)] = new ByteCodec(),
                 [typeof(sbyte)] = new SByteCodec(),
