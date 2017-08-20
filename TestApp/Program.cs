@@ -12,6 +12,7 @@ using Hagar.ISerializable;
 using Hagar.TypeSystem;
 using Hagar;
 using Newtonsoft.Json;
+using NodaTime;
 
 namespace TestApp
 {
@@ -73,7 +74,7 @@ namespace TestApp
                     partialSerializer,
                     codecProvider);
             var testString = "hello, hagar";
-            Test(
+/*            Test(
                 serializer,
                 new SubType
                 {
@@ -153,18 +154,24 @@ namespace TestApp
                 {
                     Number = 7,
                     String = "bananas!"
-                });
+                });*/
 
+            var mySerializable = new MySerializableClass
+            {
+                String = "yolooo",
+                Integer = 38,
+                Self = null,
+            };
+            /*Test(
+                new AbstractTypeSerializer<object>(codecProvider),
+                mySerializable
+            );*/
+
+            mySerializable.Self = mySerializable;
             Test(
                 new AbstractTypeSerializer<object>(codecProvider),
-                new MySerializableClass
-                {
-                    String = "yolooo",
-                    Integer = 38,
-                    Self = null,
-                }
+                mySerializable
             );
-
             Exception exception = null;
             try
             {
@@ -179,6 +186,10 @@ namespace TestApp
                 new AbstractTypeSerializer<object>(codecProvider),
                 exception
             );
+
+            Test(new AbstractTypeSerializer<object>(codecProvider), new LocalDate());
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
         }
 
         [Serializable]
@@ -205,6 +216,13 @@ namespace TestApp
                 info.AddValue(nameof(this.Integer), this.Integer);
                 info.AddValue(nameof(this.Self), this.Self);
             }
+
+            public override string ToString()
+            {
+                string refString = this.Self == this ? "[this]" : $"[{this.Self?.ToString() ?? "null"}]";
+                return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Integer)}: {this.Integer}, Self: {refString}";
+            }
+
         }
 
         static void Test<T>(IFieldCodec<T> serializer, T expected)

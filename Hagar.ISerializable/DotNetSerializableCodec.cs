@@ -18,14 +18,14 @@ namespace Hagar.ISerializable
         private readonly ITypeFilter typeFilter;
         private readonly ICodecProvider codecProvider;
         private readonly SerializationConstructorFactory constructorFactory = new SerializationConstructorFactory();
-        private readonly Func<Type, Func<SerializationInfo, StreamingContext, object>> createConstructorDelegate;
+        private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
 
         // TODO: Use a cached read concurrent dictionary.
-        private readonly ConcurrentDictionary<Type, Func<SerializationInfo, StreamingContext, object>> constructors =
-            new ConcurrentDictionary<Type, Func<SerializationInfo, StreamingContext, object>>();
+        private readonly ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>> constructors =
+            new ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>>();
         
         // TODO: Should this be injectable?
-        private static readonly FormatterConverter FormatterConverter = new FormatterConverter();
+        private static readonly IFormatterConverter FormatterConverter = new FormatterConverter();
 
         private readonly StreamingContext streamingContext = new StreamingContext();
         public static readonly Type CodecType = typeof(DotNetSerializableCodec);
@@ -42,7 +42,7 @@ namespace Hagar.ISerializable
             this.typeFilter = typeFilter;
             this.codecProvider = codecProvider;
             this.entrySerializer = new SerializationEntryCodec(stringCodec, objectCodec);
-            this.createConstructorDelegate = this.constructorFactory.GetSerializationConstructor;
+            this.createConstructorDelegate = this.constructorFactory.GetSerializationConstructorInvoker;
         }
 
         public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
@@ -68,7 +68,7 @@ namespace Hagar.ISerializable
         public object ReadValue(Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(reader, session, field, this.codecProvider, null);
-
+            object result = null;
             SerializationInfo info = null;
             uint fieldId = 0;
             while (true)
@@ -82,6 +82,8 @@ namespace Hagar.ISerializable
                         var type = this.typeCodec.ReadValue(reader, session, header);
                         if (!this.typeFilter.IsPermissible(type)) ThrowIllegalType(type);
                         info = new SerializationInfo(type, FormatterConverter);
+                        result = FormatterServices.GetUninitializedObject(type);
+                        ReferenceCodec.RecordObject(session, result);
                         break;
                     case 1:
                         if (info == null) return ThrowTypeNotSpecified();
@@ -96,7 +98,8 @@ namespace Hagar.ISerializable
             if (info == null) return ThrowTypeNotSpecified();
             
             var constructor = this.constructors.GetOrAdd(info.ObjectType, this.createConstructorDelegate);
-            return constructor(info, session.StreamingContext);
+            constructor(result, info, session.StreamingContext);
+            return result;
         }
 
         public bool IsSupportedType(Type type) => type == CodecType || SerializableType.IsAssignableFrom(type);

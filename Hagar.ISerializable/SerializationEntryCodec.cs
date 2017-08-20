@@ -25,6 +25,7 @@ namespace Hagar.ISerializable
             Type expectedType,
             SerializationEntrySurrogate value)
         {
+            ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
             this.stringCodec.WriteField(writer, session, 0, typeof(string), value.Name);
             this.objectCodec.WriteField(writer, session, 1, typeof(object), value.Value);
@@ -33,6 +34,7 @@ namespace Hagar.ISerializable
 
         public SerializationEntrySurrogate ReadValue(Reader reader, SerializerSession session, Field field)
         {
+            ReferenceCodec.MarkValueField(session);
             var result = new SerializationEntrySurrogate();
             uint fieldId = 0;
             while (true)
