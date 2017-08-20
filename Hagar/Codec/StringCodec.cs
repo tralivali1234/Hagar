@@ -27,11 +27,11 @@ namespace Hagar.Codec
             return result;
         }
 
-        void IFieldCodec<string>.WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, string value)
+        void IFieldCodec<string>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
 
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(string), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
             // TODO: use Span<byte>
             var bytes = Encoding.UTF8.GetBytes(value);
             writer.WriteVarInt((uint)bytes.Length);

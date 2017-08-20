@@ -7,7 +7,7 @@ namespace Hagar.Codec
 {
     public class SkipFieldCodec : IFieldCodec<object>
     {
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             ReferenceCodec.MarkValueField(session);
             throw new NotImplementedException();

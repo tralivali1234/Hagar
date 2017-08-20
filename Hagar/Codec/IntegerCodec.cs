@@ -10,12 +10,12 @@ namespace Hagar.Codec
         void IFieldCodec<bool>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             bool value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(bool), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(bool), WireType.VarInt);
             writer.WriteVarInt(value ? 1 : 0);
         }
 
@@ -31,12 +31,12 @@ namespace Hagar.Codec
         void IFieldCodec<char>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             char value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(char), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(char), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
@@ -52,12 +52,12 @@ namespace Hagar.Codec
         void IFieldCodec<byte>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             byte value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(byte), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(byte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
@@ -73,12 +73,12 @@ namespace Hagar.Codec
         void IFieldCodec<sbyte>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             sbyte value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(sbyte), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(sbyte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
@@ -100,12 +100,12 @@ namespace Hagar.Codec
         void IFieldCodec<ushort>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             ushort value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(ushort), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ushort), WireType.VarInt);
             writer.WriteVarInt(value);
         }
     }
@@ -115,12 +115,12 @@ namespace Hagar.Codec
         void IFieldCodec<short>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             short value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(short), WireType.VarInt);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(short), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
@@ -136,19 +136,19 @@ namespace Hagar.Codec
         void IFieldCodec<uint>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             uint value)
         {
             ReferenceCodec.MarkValueField(session);
             if (value > 1 << 20)
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(uint), WireType.Fixed32);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(uint), WireType.Fixed32);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(uint), WireType.VarInt);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(uint), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
@@ -165,19 +165,19 @@ namespace Hagar.Codec
         void IFieldCodec<int>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             int value)
         {
             ReferenceCodec.MarkValueField(session);
             if (value > 1 << 20 || -value > 1 << 20)
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(int), WireType.Fixed32);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(int), WireType.Fixed32);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(int), WireType.VarInt);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(int), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
@@ -191,30 +191,30 @@ namespace Hagar.Codec
 
     public class Int64Codec : FieldCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
-        void IFieldCodec<long>.WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, long value)
+        void IFieldCodec<long>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value)
         {
             ReferenceCodec.MarkValueField(session);
             if (value <= int.MaxValue && value >= int.MinValue)
             {
                 if (value > 1 << 20 || -value > 1 << 20)
                 {
-                    writer.WriteFieldHeader(session, fieldId, expectedType, typeof(long), WireType.Fixed32);
+                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed32);
                     writer.Write(value);
                 }
                 else
                 {
-                    writer.WriteFieldHeader(session, fieldId, expectedType, typeof(long), WireType.VarInt);
+                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
                     writer.WriteVarInt(value);
                 }
             }
             else if (value > 1 << 41 || -value > 1 << 41)
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(long), WireType.Fixed64);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed64);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(long), WireType.VarInt);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
@@ -231,7 +231,7 @@ namespace Hagar.Codec
         void IFieldCodec<ulong>.WriteField(
             Writer writer,
             SerializerSession session,
-            uint fieldId,
+            uint fieldIdDelta,
             Type expectedType,
             ulong value)
         {
@@ -240,23 +240,23 @@ namespace Hagar.Codec
             {
                 if (value > 1 << 20)
                 {
-                    writer.WriteFieldHeader(session, fieldId, expectedType, typeof(ulong), WireType.Fixed32);
+                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed32);
                     writer.Write(value);
                 }
                 else
                 {
-                    writer.WriteFieldHeader(session, fieldId, expectedType, typeof(ulong), WireType.VarInt);
+                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
                     writer.WriteVarInt(value);
                 }
             }
             else if (value > 1 << 41)
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(ulong), WireType.Fixed64);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed64);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldId, expectedType, typeof(ulong), WireType.VarInt);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }

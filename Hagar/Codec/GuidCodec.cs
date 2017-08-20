@@ -7,10 +7,10 @@ namespace Hagar.Codec
 {
     public class GuidCodec : IFieldCodec<Guid>
     {
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, Guid value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value)
         {
             ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldId, expectedType, typeof(Guid), WireType.Fixed128);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);
             writer.Write(value);
         }
 

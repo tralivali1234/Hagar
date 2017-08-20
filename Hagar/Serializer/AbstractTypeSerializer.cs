@@ -20,11 +20,11 @@ namespace Hagar.Serializer
             this.codecProvider = codecProvider;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, TField value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
             if (value == null)
             {
-                ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, null);
+                ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, null);
                 return;
             }
 
@@ -32,7 +32,7 @@ namespace Hagar.Serializer
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
-                specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
+                specificSerializer.WriteField(writer, session, fieldIdDelta, expectedType, value);
             }
             else
             {
@@ -52,11 +52,10 @@ namespace Hagar.Serializer
                 return (TField)specificSerializer.ReadValue(reader, session, field);
             }
 
-            ThrowSerializerNotFound(fieldType);
-            return null;
+            return ThrowSerializerNotFound(fieldType);
         }
 
-        private static void ThrowSerializerNotFound(Type type)
+        private static TField ThrowSerializerNotFound(Type type)
         {
             throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
         }

@@ -27,16 +27,16 @@ namespace Hagar.Json
             this.isSupportedFunc = isSupportedFunc ?? (_ => true);
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
             var result = JsonConvert.SerializeObject(value, this.settings);
             
             // The schema type when serializing the field is the type of the codec.
             // In practice it could be any unique type as long as this codec is registered as the handler.
             // By checking against the codec type in IsSupportedType, the codec could also just be registered as an IGenericCodec.
             // Note that the codec is responsible for serializing the type of the value itself.
-            writer.WriteFieldHeader(session, fieldId, expectedType, SelfType, WireType.LengthPrefixed);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SelfType, WireType.LengthPrefixed);
 
             // TODO: NoAlloc
             var bytes = Encoding.UTF8.GetBytes(result);
@@ -63,7 +63,7 @@ namespace Hagar.Json
         public bool IsSupportedType(Type type) => type == SelfType || this.isSupportedFunc(type);
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
+            $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for JSON fields. {field}");
     
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using Hagar.Activator;
 using Hagar.Codec;
@@ -7,6 +8,9 @@ using Hagar.Json;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
+using Hagar.ISerializable;
+using Hagar.TypeSystem;
+using Hagar;
 using Newtonsoft.Json;
 
 namespace TestApp
@@ -32,6 +36,20 @@ namespace TestApp
             var genericCodecs = new List<IGenericCodec>();
             var codecProvider = new CodecProvider(codecs, genericCodecs);
 
+            var typeSerializerCodec = new TypeSerializerCodec(codecProvider);
+            var typeCodec = FieldCodecWrapper.Create<Type, TypeSerializerCodec>(typeSerializerCodec);
+            codecs[typeof(Type)] = typeCodec;
+            // ReSharper disable once PossibleMistakenCallToGetType.2
+            codecs[typeof(Type).GetType()] = typeCodec;
+
+            // TODO: construct using DI
+            var dotNetSerializableCodec = new DotNetSerializableCodec(
+                typeSerializerCodec,
+                new StringCodec(codecProvider),
+                new ObjectCodec(codecProvider),
+                new DefaultTypeFilter(),
+                codecProvider);
+            genericCodecs.Add(dotNetSerializableCodec);
             genericCodecs.Add(new JsonCodec(codecProvider));
 
             var stringCodec = new StringCodec(codecProvider);
@@ -136,6 +154,57 @@ namespace TestApp
                     Number = 7,
                     String = "bananas!"
                 });
+
+            Test(
+                new AbstractTypeSerializer<object>(codecProvider),
+                new MySerializableClass
+                {
+                    String = "yolooo",
+                    Integer = 38,
+                    Self = null,
+                }
+            );
+
+            Exception exception = null;
+            try
+            {
+                throw new ReferenceNotFoundException(typeof(int), 2401);
+            }
+            catch (Exception e)
+            {
+                exception = e;
+            }
+
+            Test(
+                new AbstractTypeSerializer<object>(codecProvider),
+                exception
+            );
+        }
+
+        [Serializable]
+        public class MySerializableClass : ISerializable
+        {
+            public string String { get; set; }
+            public int Integer { get; set; }
+            public MySerializableClass Self { get; set; }
+
+            public MySerializableClass()
+            {
+            }
+
+            protected MySerializableClass(SerializationInfo info, StreamingContext context)
+            {
+                this.String = info.GetString(nameof(this.String));
+                this.Integer = info.GetInt32(nameof(this.Integer));
+                this.Self = (MySerializableClass) info.GetValue(nameof(this.Self), typeof(MySerializableClass));
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue(nameof(this.String), this.String);
+                info.AddValue(nameof(this.Integer), this.Integer);
+                info.AddValue(nameof(this.Self), this.Self);
+            }
         }
 
         static void Test<T>(IFieldCodec<T> serializer, T expected)
@@ -143,7 +212,7 @@ namespace TestApp
             var session = new SerializerSession();
             var writer = new Writer();
 
-            serializer.WriteField(writer, session, 0, typeof(SubType), expected);
+            serializer.WriteField(writer, session, 0, typeof(T), expected);
 
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");

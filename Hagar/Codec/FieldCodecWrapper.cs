@@ -1,4 +1,5 @@
 using System;
+using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
@@ -13,7 +14,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class FieldCodecWrapper<TField, TCodec> : IFieldCodec<object> where TCodec : IFieldCodec<TField>
+    public class FieldCodecWrapper<TField, TCodec> : IFieldCodec<object>, ICodecWrapper where TCodec : IFieldCodec<TField>
     {
         private readonly TCodec codec;
 
@@ -22,15 +23,17 @@ namespace Hagar.Codec
             this.codec = codec;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            this.codec.WriteField(writer, session, fieldId, expectedType, (TField)value);
+            this.codec.WriteField(writer, session, fieldIdDelta, expectedType, (TField)value);
         }
 
         public object ReadValue(Reader reader, SerializerSession session, Field field)
         {
             return this.codec.ReadValue(reader, session, field);
         }
+
+        public object InnerCodec => this.codec;
     }
 
     public class FieldCodecBase<TField, TCodec> : IFieldCodec<object> where TCodec : class, IFieldCodec<TField>
@@ -43,9 +46,9 @@ namespace Hagar.Codec
             if (this.codec == null) ThrowInvalidSubclass();
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            this.codec.WriteField(writer, session, fieldId, expectedType, (TField)value);
+            this.codec.WriteField(writer, session, fieldIdDelta, expectedType, (TField)value);
         }
 
         public object ReadValue(Reader reader, SerializerSession session, Field field)
@@ -56,6 +59,27 @@ namespace Hagar.Codec
         private static void ThrowInvalidSubclass()
         {
             throw new InvalidCastException($"Subclasses of {typeof(FieldCodecBase<TField, TCodec>)} must implement/derive from {typeof(TCodec)}.");
+        }
+    }
+
+    public class TypedCodecWrapper<TField> : ICodecWrapper, IFieldCodec<TField>
+    {
+        private readonly IFieldCodec<object> codec;
+
+        public TypedCodecWrapper(IFieldCodec<object> codec)
+        {
+            this.codec = codec;
+        }
+
+        public object InnerCodec => this.codec;
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+        {
+            this.codec.WriteField(writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        public TField ReadValue(Reader reader, SerializerSession session, Field field)
+        {
+            return (TField) this.codec.ReadValue(reader, session, field);
         }
     }
 }

@@ -36,35 +36,40 @@ namespace Hagar.Codec
 
         public static T ReadReference<T>(Reader reader, SerializerSession session, Field field, ICodecProvider serializers)
         {
+            return (T) ReadReference(reader, session, field, serializers, typeof(T));
+        }
+
+        public static object ReadReference(Reader reader, SerializerSession session, Field field, ICodecProvider serializers, Type expectedType)
+        {
             var reference = reader.ReadVarUInt32();
             if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
             {
-                ThrowReferenceNotFound<T>(reference, session);
+                ThrowReferenceNotFound(expectedType, reference);
             }
 
             if (value is UnknownFieldMarker marker)
             {
-                return DeserializeFromMarker<T>(reader, session, field, serializers, marker, reference);
+                return DeserializeFromMarker(reader, session, field, serializers, marker, reference, expectedType);
             }
 
-            if (value is T) return (T)value;
-            return default(T);
+            return value;
         }
 
-        private static T DeserializeFromMarker<T>(
+        private static object DeserializeFromMarker(
             Reader reader,
             SerializerSession session,
             Field field,
             ICodecProvider serializers,
             UnknownFieldMarker marker,
-            uint reference)
+            uint reference,
+            Type lastResortFieldType)
         {
             // Create a reader at the position specified by the marker.
             var referencedReader = new Reader(reader.GetBuffers());
             referencedReader.Advance(marker.Offset);
 
             // Determine the correct type for the field.
-            var fieldType = marker.Field.FieldType ?? field.FieldType ?? typeof(T);
+            var fieldType = marker.Field.FieldType ?? field.FieldType ?? lastResortFieldType;
 
             // Get a serializer for that type.
             var specificSerializer = serializers.GetCodec(fieldType);
@@ -76,7 +81,7 @@ namespace Hagar.Codec
             // Deserialize the object, replacing the marker in the session.
             try
             {
-                return (T) specificSerializer.ReadValue(referencedReader, session, marker.Field);
+                return specificSerializer.ReadValue(referencedReader, session, marker.Field);
             }
             finally
             {
@@ -86,10 +91,10 @@ namespace Hagar.Codec
         }
 
         public static void RecordObject(SerializerSession session, object value) => session.ReferencedObjects.RecordReferenceField(value);
-
-        private static void ThrowReferenceNotFound<T>(uint reference, SerializerSession session)
+        
+        private static void ThrowReferenceNotFound(Type expectedType, uint reference)
         {
-            throw new ReferenceNotFoundException(typeof(T), reference, session.ReferencedObjects.CopyReferenceTable());
+            throw new ReferenceNotFoundException(expectedType, reference);
         }
     }
 }

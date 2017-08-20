@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\Hagar.Json\Hagar.Json.csproj" />
     <ProjectReference Include="..\Hagar\Hagar.csproj" />
   </ItemGroup>

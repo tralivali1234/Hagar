@@ -28,7 +28,6 @@ namespace TestApp
             while (true)
             {
                 var header = reader.ReadFieldHeader(session);
-                //Console.WriteLine(header);
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)

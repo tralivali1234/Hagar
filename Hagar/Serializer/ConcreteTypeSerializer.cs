@@ -30,13 +30,13 @@ namespace Hagar.Serializer
             this.codecProvider = codecProvider;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, TField value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
             var fieldType = value.GetType();
             if (fieldType == typeof(TField))
             {
-                writer.WriteStartObject(session, fieldId, expectedType, fieldType);
+                writer.WriteStartObject(session, fieldIdDelta, expectedType, fieldType);
                 this.serializer.Serialize(writer, session, value);
                 writer.WriteEndObject();
             }
@@ -45,7 +45,7 @@ namespace Hagar.Serializer
                 var specificSerializer = this.codecProvider.GetCodec(fieldType);
                 if (specificSerializer != null)
                 {
-                    specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
+                    specificSerializer.WriteField(writer, session, fieldIdDelta, expectedType, value);
                 }
                 else
                 {
@@ -60,7 +60,7 @@ namespace Hagar.Serializer
             var fieldType = field.FieldType;
             if (fieldType == null || fieldType == typeof(TField))
             {
-                var result = this.activator.Create(reader, session);
+                var result = this.activator.Create();
                 ReferenceCodec.RecordObject(session, result);
                 this.serializer.Deserialize(reader, session, result);
                 return result;

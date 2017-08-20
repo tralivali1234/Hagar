@@ -29,18 +29,18 @@ namespace Hagar.Codec
             return specificSerializer.ReadValue(reader, session, field);
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldId, Type expectedType, object value)
+        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             var fieldType = value?.GetType();
             if (fieldType == null || fieldType == ObjectType)
             {
-                if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldId, expectedType, value)) return;
-                writer.WriteFieldHeader(session, fieldId, expectedType, ObjectType, WireType.LengthPrefixed);
+                if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, ObjectType, WireType.LengthPrefixed);
                 writer.WriteVarInt((uint) 0);
             }
 
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
-            specificSerializer.WriteField(writer, session, fieldId, expectedType, value);
+            specificSerializer.WriteField(writer, session, fieldIdDelta, expectedType, value);
         }
     }
 }

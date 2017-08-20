@@ -20,8 +20,17 @@ namespace Hagar.TypeSystem
         {
             var length = reader.ReadUInt();
             var bytes = reader.ReadBytes((int)length);
-            type = Type.GetType(Encoding.UTF8.GetString(bytes), throwOnError: false);
+            var typeName = Encoding.UTF8.GetString(bytes);
+            type = Type.GetType(typeName, throwOnError: false);
             return type != null;
+        }
+
+        public Type Read(Reader reader)
+        {
+            var length = reader.ReadUInt();
+            var bytes = reader.ReadBytes((int)length);
+            var typeName = Encoding.UTF8.GetString(bytes);
+            return Type.GetType(typeName);
         }
     }
 }
