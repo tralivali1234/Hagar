@@ -13,6 +13,7 @@ namespace Hagar.ISerializable
 {
     public class DotNetSerializableCodec : IGenericCodec
     {
+#warning implement support for callbacks
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> typeCodec;
         private readonly ITypeFilter typeFilter;
