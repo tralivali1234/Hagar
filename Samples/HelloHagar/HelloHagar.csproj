@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <HagarVersion>1.0.0-dev-20170916035019</HagarVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hagar" Version="1.0.0-dev-20170916035947" />
+    <PackageReference Include="Hagar.Analyzers" Version="1.0.0-dev-20170916035947" />
+  </ItemGroup>
+</Project>
