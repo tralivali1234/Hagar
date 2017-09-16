@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Hagar
+namespace Hagar.TypeSystem
 {
     public class WellKnownTypeCollection
     {
