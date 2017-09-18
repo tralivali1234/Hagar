@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hagar.Analyzers.Helpers;
+using Hagar.Analyzers.Helpers.KnownSymbols.BaseTypes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,7 +18,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 namespace Hagar.Analyzers
 {
-    /*public class GenerateSerializerCodeFix : CodeFixProvider
+    public class GenerateSerializerCodeFix : CodeFixProvider
     {
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -25,7 +26,7 @@ namespace Hagar.Analyzers
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (diagnostic.Id == GenerateSerializerDiagnosticAnalyzer.Id)
+                if (diagnostic.Id == MissingSerializerAnalyzer.Id)
                 {
                     var token = syntaxRoot.FindToken(diagnostic.Location.SourceSpan.Start);
                     if (string.IsNullOrEmpty(token.ValueText) ||
@@ -35,13 +36,19 @@ namespace Hagar.Analyzers
                     }
 
                     var node = syntaxRoot.FindNode(diagnostic.Location.SourceSpan);
-                    node.
                 }
             }
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(GenerateSerializerDiagnosticAnalyzer.Id);
-    }*/
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(MissingSerializerAnalyzer.Id);
+    }
+
+    internal class ContainsSerializerAttributeType : QualifiedType
+    {
+        public ContainsSerializerAttributeType() : base("Hagar.ContainsSerializerAttributeType")
+        {
+        }
+    }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MissingSerializerAnalyzer : DiagnosticAnalyzer
@@ -58,6 +65,8 @@ namespace Hagar.Analyzers
             description: "This type is marked as being serializable, however no serializer implementation."
 #warning add a help link.
             /*, helpLinkUri: */);
+
+        private static readonly ContainsSerializerAttributeType ContainsSerializerAttributeType = new ContainsSerializerAttributeType();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);
 
@@ -78,12 +87,15 @@ namespace Hagar.Analyzers
             {
                 foreach (var attribute in attributeList.Attributes)
                 {
+                    var attributeSymbol = context.SemanticModel.GetSymbolSafe(attribute, context.CancellationToken);
+                    if (attributeSymbol == null) continue;
                     context.ReportDiagnostic(
                         Diagnostic.Create(
                             new DiagnosticDescriptor(
                                 id: Id,
                                 title: "Serializer Not Found",
-                                messageFormat: "No serializer was found for this type: \"" +  attribute.Name + "\"",
+                                messageFormat: "No serializer was found for this type: \"" + attribute.Name + "\" /" + attributeSymbol.ContainingType.MetadataName + "/" +
+                                               (attributeSymbol.ContainingType == ContainsSerializerAttributeType),
                                 category: "Hagar.Correctness",
                                 defaultSeverity: DiagnosticSeverity.Hidden,
                                 isEnabledByDefault: true,

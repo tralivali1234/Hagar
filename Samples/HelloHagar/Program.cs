@@ -14,6 +14,5 @@ namespace HelloHagar
     [Hagar.ContainsSerializer]
     public class MyPoco
     {
-
     }
 }
