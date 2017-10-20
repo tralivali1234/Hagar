@@ -1,10 +1,14 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Buildalyzer;
 using Buildalyzer.Workspaces;
+using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -69,30 +73,18 @@ namespace Hagar.CodeGenerator
             var serializableTypes = GetSerializableTypes(cancellationToken);
 
             // Generate code.
+            var members = new List<MemberDeclarationSyntax>();
             foreach (var type in serializableTypes)
             {
                 Console.WriteLine($"Will generate serializer for: {type}");
 
+                foreach (var field in type.Fields)
                 {
-                    var members = type.Type.GetMembers();
-                    foreach (var member in members)
-                    {
-                        Console.WriteLine($"\t{member.Name} ({member.GetType()}) with attrs {string.Join(", ", member.GetAttributes().Select(attr => attr.AttributeClass.Name))}");
-                    }
-                }
-
-                var baseType = type.Type.BaseType;
-                if (baseType != null)
-                {
-                    var members = baseType.GetMembers();
-                    foreach (var member in members)
-                    {
-                        Console.WriteLine($"\tBase {member.Name} ({member.GetType()}) with attrs {string.Join(", ", member.GetAttributes().Select(attr => attr.AttributeClass.Name))}");
-                    }
+                    Console.WriteLine($"\tField: {field.FieldId}");
                 }
             }
 
-            return CompilationUnit();
+            return CompilationUnit().WithAttributeLists(SingletonList(GetGeneratedCodeAttribute()));
         }
 
         private List<TypeDescription> GetSerializableTypes(CancellationToken cancellationToken)
@@ -126,6 +118,16 @@ namespace Hagar.CodeGenerator
         {
             foreach (var member in symbol.GetMembers())
             {
+                if (member is IFieldSymbol)
+                {
+                    
+                }
+
+                if (member is IPropertySymbol)
+                {
+                    
+                }
+
                 var fieldIdAttr = member.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.fieldIdAttribute));
                 if (fieldIdAttr == null) continue;
 
@@ -154,6 +156,21 @@ namespace Hagar.CodeGenerator
                     .Select(attr => model.GetTypeInfo(attr).ConvertedType)
                     .Any(attrType => attrType.Equals(this.generateSerializerAttribute));
             }
+        }
+
+        private static AttributeListSyntax GetGeneratedCodeAttribute()
+        {
+            var assemblyVersion = typeof(Generator).Assembly.GetName().Version.ToString();
+            var generatedCodeAttribute =
+                AttributeList()
+                  .AddAttributes(
+                      Attribute(ParseName("System.CodeDom.Compiler.GeneratedCodeAttribute"))
+                        .AddArgumentListArguments(
+                            AttributeArgument("Hagar.CodeGenerator".GetLiteralExpression()),
+                            AttributeArgument(assemblyVersion.GetLiteralExpression())))
+                  .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)));
+            return generatedCodeAttribute;
+
         }
     }
 }

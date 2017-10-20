@@ -10,7 +10,7 @@ namespace HagarCodeGen
         static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
         static async Task MainAsync(string[] args)
         {
-            var result = await new Generator().GenerateCode(@"C:\dev\Hagar\Samples\MyPocos\MyPocos.csproj", CancellationToken.None);
+            var result = await CodeGenerator.GenerateCode(@"C:\dev\Hagar\Samples\MyPocos\MyPocos.csproj", CancellationToken.None);
             Console.WriteLine(result);
         }
     }
