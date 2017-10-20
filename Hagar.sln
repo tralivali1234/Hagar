@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator", "Haga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HagarCodeGen", "HagarCodeGen\HagarCodeGen.csproj", "{ADBB87A5-E989-4C0F-9B24-CBEC82063846}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hagar.Abstractions", "Hagar.Annotations\Hagar.Abstractions.csproj", "{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hagar.Abstractions", "Hagar.Abstractions\Hagar.Abstractions.csproj", "{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Hagar;
-using Hagar.Annotations;
 
 namespace MyPocos
 {

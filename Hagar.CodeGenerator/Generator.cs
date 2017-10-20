@@ -59,8 +59,8 @@ namespace Hagar.CodeGenerator
         {
             this.compilation = compilation;
 
-            this.generateSerializerAttribute = compilation.GetTypeByMetadataName("Hagar.Annotations.GenerateSerializerAttribute");
-            this.fieldIdAttribute = compilation.GetTypeByMetadataName("Hagar.Annotations.FieldIdAttribute");
+            this.generateSerializerAttribute = compilation.GetTypeByMetadataName("Hagar.GenerateSerializerAttribute");
+            this.fieldIdAttribute = compilation.GetTypeByMetadataName("Hagar.FieldIdAttribute");
         }
 
         public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
