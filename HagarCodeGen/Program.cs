@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Buildalyzer;
+using Buildalyzer.Workspaces;
+using Hagar;
 using Hagar.CodeGenerator;
+using Microsoft.CodeAnalysis;
 
 namespace HagarCodeGen
 {
@@ -10,8 +15,20 @@ namespace HagarCodeGen
         static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
         static async Task MainAsync(string[] args)
         {
-            var result = await CodeGenerator.GenerateCode(@"C:\dev\Hagar\Samples\MyPocos\MyPocos.csproj", CancellationToken.None);
+            var cancellation = CancellationToken.None;
+            var compilation = await LoadProject(@"C:\dev\Hagar\Samples\MyPocos\MyPocos.csproj", cancellation);
+            var generator = new CodeGenerator(compilation);
+            var result = generator.GenerateCode(cancellation);
             Console.WriteLine(result);
+        }
+
+        private static Task<Compilation> LoadProject(string projectFilePath, CancellationToken cancellationToken)
+        {
+            var manager = new AnalyzerManager();
+            var analyzer = manager.GetProject(projectFilePath);
+            var workspace = analyzer.GetWorkspace();
+            var project = workspace.CurrentSolution.Projects.Single();
+            return project.GetCompilationAsync(cancellationToken);
         }
     }
 }

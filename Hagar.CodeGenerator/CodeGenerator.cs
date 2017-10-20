@@ -1,13 +1,7 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
-using Buildalyzer;
-using Buildalyzer.Workspaces;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,53 +10,64 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal class FieldDescription
+    internal interface IMemberDescription
     {
-        public FieldDescription(int fieldId)
+        int FieldId { get; }
+
+        ISymbol Member { get; }
+        ITypeSymbol Type { get; }
+    }
+
+    internal class FieldDescription : IMemberDescription
+    {
+        public FieldDescription(int fieldId, IFieldSymbol field)
         {
             this.FieldId = fieldId;
+            this.Field = field;
+        }
+
+        public IFieldSymbol Field { get; }
+        public int FieldId { get; }
+        public ISymbol Member => this.Field;
+        public ITypeSymbol Type => this.Field.Type;
+    }
+
+    internal class PropertyDescription : IMemberDescription
+    {
+        public PropertyDescription(int fieldId, IPropertySymbol property)
+        {
+            this.FieldId = fieldId;
+            this.Property = property;
         }
 
         public int FieldId { get; }
+        public ISymbol Member => this.Property;
+        public ITypeSymbol Type => this.Property.Type;
+        public IPropertySymbol Property { get; }
     }
 
     internal class TypeDescription
     {
-        public TypeDescription(INamedTypeSymbol type, IEnumerable<FieldDescription>fields)
+        public TypeDescription(INamedTypeSymbol type, IEnumerable<IMemberDescription> members)
         {
             this.Type = type;
-            this.Fields = fields.ToList();
+            this.Members = members.ToList();
         }
 
         public INamedTypeSymbol Type { get; }
 
-        public List<FieldDescription> Fields { get; }
+        public List<IMemberDescription> Members { get; }
     }
-
-    public static class CodeGenerator
-    {
-        public static async Task<CompilationUnitSyntax> GenerateCode(string projectFilePath, CancellationToken cancellationToken)
-        {
-            var manager = new AnalyzerManager();
-            var analyzer = manager.GetProject(projectFilePath);
-            var workspace = analyzer.GetWorkspace();
-            var project = workspace.CurrentSolution.Projects.Single();
-            var compilation = await project.GetCompilationAsync(cancellationToken);
-            
-            return new Generator(compilation).GenerateCode(cancellationToken);
-        }
-    }
-
-    public class Generator
+    
+    public class CodeGenerator
     {
         private readonly Compilation compilation;
         private readonly INamedTypeSymbol generateSerializerAttribute;
         private readonly INamedTypeSymbol fieldIdAttribute;
 
-        public Generator(Compilation compilation)
+        public CodeGenerator(Compilation compilation)
         {
             this.compilation = compilation;
-
             this.generateSerializerAttribute = compilation.GetTypeByMetadataName("Hagar.GenerateSerializerAttribute");
             this.fieldIdAttribute = compilation.GetTypeByMetadataName("Hagar.FieldIdAttribute");
         }
@@ -78,9 +83,15 @@ namespace Hagar.CodeGenerator
             {
                 Console.WriteLine($"Will generate serializer for: {type}");
 
-                foreach (var field in type.Fields)
+                var baseType = type.Type.BaseType;
+                if (baseType != null)
                 {
-                    Console.WriteLine($"\tField: {field.FieldId}");
+                    Console.WriteLine($"\t[BaseType] Type: {baseType.MetadataName}");
+                }
+
+                foreach (var field in type.Members)
+                {
+                    Console.WriteLine($"\t[Member] Id: {field.FieldId} Name: {field.Member.Name} Type: {field.Type.MetadataName}");
                 }
             }
 
@@ -109,30 +120,43 @@ namespace Hagar.CodeGenerator
         private TypeDescription CreateTypeDescription(SemanticModel semanticModel, TypeDeclarationSyntax typeDecl)
         {
             var declared = semanticModel.GetDeclaredSymbol(typeDecl);
-            var typeDescription = new TypeDescription(declared, this.GetSerializableFields(declared));
+            var typeDescription = new TypeDescription(declared, this.GetMembers(declared));
             return typeDescription;
         }
 
         // Returns descriptions of all fields 
-        private IEnumerable<FieldDescription> GetSerializableFields(INamedTypeSymbol symbol)
+        private IEnumerable<IMemberDescription> GetMembers(INamedTypeSymbol symbol)
         {
             foreach (var member in symbol.GetMembers())
             {
-                if (member is IFieldSymbol)
-                {
-                    
-                }
-
-                if (member is IPropertySymbol)
-                {
-                    
-                }
+                // Only consider fields and properties.
+                if (!(member is IFieldSymbol || member is IPropertySymbol)) continue;
 
                 var fieldIdAttr = member.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.fieldIdAttribute));
                 if (fieldIdAttr == null) continue;
+                var id = (int)fieldIdAttr.ConstructorArguments.First().Value;
 
-                var id = (int) fieldIdAttr.ConstructorArguments.First().Value;
-                yield return new FieldDescription(id);
+                if (member is IPropertySymbol prop)
+                {
+                    if (prop.IsReadOnly || prop.IsWriteOnly)
+                    {
+#warning add diagnostic: not read/write property.
+                        continue;
+                    }
+
+                    yield return new PropertyDescription(id, prop);
+                }
+
+                if (member is IFieldSymbol field)
+                {
+                    if (field.IsConst || field.IsReadOnly)
+                    {
+#warning add diagnostic: readonly field.
+                        continue;
+                    }
+                    
+                    yield return new FieldDescription(id, field);
+                }
             }
         }
 
@@ -160,7 +184,7 @@ namespace Hagar.CodeGenerator
 
         private static AttributeListSyntax GetGeneratedCodeAttribute()
         {
-            var assemblyVersion = typeof(Generator).Assembly.GetName().Version.ToString();
+            var assemblyVersion = typeof(CodeGenerator).Assembly.GetName().Version.ToString();
             var generatedCodeAttribute =
                 AttributeList()
                   .AddAttributes(
