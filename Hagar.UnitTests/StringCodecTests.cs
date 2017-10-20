@@ -17,9 +17,11 @@ namespace Hagar.UnitTests
 
     public class Tester
     {
-        [Fact]
-        public void DoTest()
+        [Theory]
+        [InlineData(23)]
+        public void DoTest(int i)
         {
+            Assert.False(67 + 34 - i == 0);
         }
     }
 }
