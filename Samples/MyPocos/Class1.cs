@@ -31,4 +31,18 @@ namespace MyPocos
         [FieldId(0)]
         public int IntProperty { get; set; }
     }
+
+
+    [GenerateSerializer]
+    public class GenericPoco<T>
+    {
+        [FieldId(0)]
+        public T Field { get; set; }
+
+        [FieldId(1030)]
+        public T[] ArrayField { get; set; }
+
+        [FieldId(2222)]
+        public Dictionary<T, T> DictField { get; set; }
+    }
 }

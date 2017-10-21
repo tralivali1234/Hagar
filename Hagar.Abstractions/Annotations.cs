@@ -10,22 +10,22 @@ namespace Hagar
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum)]
     public sealed class TypeIdAttribute : Attribute
     {
-        public TypeIdAttribute(int id)
+        public TypeIdAttribute(uint id)
         {
             this.Id = id;
         }
 
-        public int Id { get; }
+        public uint Id { get; }
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class FieldIdAttribute : Attribute
     {
-        public FieldIdAttribute(int id)
+        public FieldIdAttribute(uint id)
         {
             this.Id = id;
         }
 
-        public int Id { get; }
+        public uint Id { get; }
     }
 }
