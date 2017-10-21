@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Buildalyzer;
 using Buildalyzer.Workspaces;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MSBuildTask = Microsoft.Build.Utilities.Task;
 
 namespace Hagar.CodeGenerator.MSBuild
 {
-    public class GenerateCSharpCode : MSBuildTask
+    public class GenerateCode : MSBuildTask
     {
         private static readonly int[] SuppressCompilerWarnings =
         {
@@ -29,22 +26,23 @@ namespace Hagar.CodeGenerator.MSBuild
             1998 // CS1998 - This async method lacks 'await' operators and will run synchronously
         };
 
-        public ITaskItem2 ProjectFile { get; set; }
+        public string ProjectFile { get; set; }
 
-        public ITaskItem2 OutputFile { get; set; }
+        public string OutputFile { get; set; }
 
         public override bool Execute()
         {
+            //while (!Debugger.IsAttached) Thread.Sleep(TimeSpan.FromSeconds(1));
             return this.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private async Task<bool> ExecuteAsync(CancellationToken cancellation)
         {
-            var compilation = await LoadProject(this.ProjectFile.ItemSpec, cancellation);
+            var compilation = await LoadProject(this.ProjectFile, cancellation);
             var generator = new CodeGenerator(compilation);
             var syntax = generator.GenerateCode(cancellation).NormalizeWhitespace();
             var source = syntax.ToFullString();
-            using (var sourceWriter = new StreamWriter(this.OutputFile.ItemSpec))
+            using (var sourceWriter = new StreamWriter(this.OutputFile))
             {
                 sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
                 foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning disable {warningNum}");

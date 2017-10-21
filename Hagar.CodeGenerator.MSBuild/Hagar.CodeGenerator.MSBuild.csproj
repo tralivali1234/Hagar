@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
     <AssemblyName>Hagar.CodeGenerator.MSBuild</AssemblyName>
@@ -10,8 +10,8 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <ApplicationIcon />
-    <StartupObject />
+    <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
+    <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
   </PropertyGroup>
   
   <ItemGroup>
@@ -38,6 +38,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.4.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" PrivateAssets="All" />
+    <PackageReference Include="System.Runtime" Version="4.3.0" PrivateAssets="All" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,13 +55,12 @@
     <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
   </Target>
   
-  <!--<Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
-  -->
+  <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
    <!-- 
     The include needs to happen after output has been copied to build output folder
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
-  -->
-    <!--<ItemGroup>
+   -->
+    <ItemGroup>
       <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
@@ -68,5 +70,5 @@
         <BuildAction>Content</BuildAction>
       </_PackageFiles>
     </ItemGroup>
-  </Target>-->
+  </Target>
 </Project>
