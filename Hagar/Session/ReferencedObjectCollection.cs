@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Hagar.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Session
 {
-    public class ReferencedObjectCollection
+    public sealed class ReferencedObjectCollection
     {
         private readonly Dictionary<uint, object> references = new Dictionary<uint, object>();
         private readonly Dictionary<object, uint> referenceToIdMap = new Dictionary<object, uint>(ReferenceEqualsComparer.Instance);
@@ -55,6 +55,26 @@ namespace Hagar.Session
             this.references.Clear();
             this.referenceToIdMap.Clear();
             this.CurrentReferenceId = 0;
+        }
+
+        internal class ReferenceEqualsComparer : IEqualityComparer<object>
+        {
+            /// <summary>
+            /// Gets an instance of this class.
+            /// </summary>
+            public static ReferenceEqualsComparer Instance { get; } = new ReferenceEqualsComparer();
+
+            /// <inheritdoc />
+            bool IEqualityComparer<object>.Equals(object x, object y)
+            {
+                return ReferenceEquals(x, y);
+            }
+
+            /// <inheritdoc />
+            int IEqualityComparer<object>.GetHashCode(object obj)
+            {
+                return obj == null ? 0 : RuntimeHelpers.GetHashCode(obj);
+            }
         }
     }
 }

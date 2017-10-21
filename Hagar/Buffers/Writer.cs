@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Hagar.Utilities
+namespace Hagar.Buffers
 {
     public class Writer
     {

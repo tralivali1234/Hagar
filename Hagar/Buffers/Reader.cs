@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Hagar.Utilities
+namespace Hagar.Buffers
 {
     /// <summary>
     /// Reader for Orleans binary token streams

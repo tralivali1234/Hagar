@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Session;
-using Hagar.Utilities;
+using Hagar.TypeSystem;
 using Xunit;
 
 namespace Hagar.TestKit
@@ -15,7 +15,7 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var writer = new Writer();
-            var writerSession = new SerializerSession();
+            var writerSession = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var writerCodec = this.CreateCodec();
             var beforeReference = writerSession.ReferencedObjects.CurrentReferenceId;
 
@@ -25,7 +25,7 @@ namespace Hagar.TestKit
             Assert.True(beforeReference < afterReference, "Writing a field should result in at least one reference being marked in the session.");
 
             var reader = new Reader(writer.ToBytes());
-            var readerSession = new SerializerSession();
+            var readerSession = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader(readerSession);
             beforeReference = readerSession.ReferencedObjects.CurrentReferenceId;

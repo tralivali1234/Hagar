@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Hagar.Session
 {
-    public class ReferencedTypeCollection
+    public sealed class ReferencedTypeCollection
     {
         private readonly Dictionary<uint, Type> referencedTypes = new Dictionary<uint, Type>();
         private readonly Dictionary<Type, uint> referencedTypeToIdMap = new Dictionary<Type, uint>();

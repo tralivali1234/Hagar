@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -61,6 +62,7 @@ namespace Hagar.CodeGenerator
     
     public class CodeGenerator
     {
+        internal const string CodeGeneratorName = "HagarGen";
         private readonly Compilation compilation;
         private readonly INamedTypeSymbol generateSerializerAttribute;
         private readonly INamedTypeSymbol fieldIdAttribute;
@@ -93,9 +95,11 @@ namespace Hagar.CodeGenerator
                 {
                     Console.WriteLine($"\t[Member] Id: {field.FieldId} Name: {field.Member.Name} Type: {field.Type.MetadataName}");
                 }
+
+                members.Add(PartialSerializerGenerator.GenerateSerializer(this.compilation, type));
             }
 
-            return CompilationUnit().WithAttributeLists(SingletonList(GetGeneratedCodeAttribute()));
+            return CompilationUnit().WithAttributeLists(SingletonList(GetGeneratedCodeAttribute())).WithMembers(List(members));
         }
 
         private List<TypeDescription> GetSerializableTypes(CancellationToken cancellationToken)
@@ -108,7 +112,7 @@ namespace Hagar.CodeGenerator
                 foreach (var node in nodes)
                 {
                     if (!(node is TypeDeclarationSyntax decl)) continue;
-                    if (!this.HasGenerateSerializerAttribute(decl, semanticModel)) break;
+                    if (!this.HasGenerateSerializerAttribute(decl, semanticModel)) continue;
                     var typeDescription = this.CreateTypeDescription(semanticModel, decl);
                     results.Add(typeDescription);
                 }
@@ -195,6 +199,16 @@ namespace Hagar.CodeGenerator
                   .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)));
             return generatedCodeAttribute;
 
+        }
+
+        internal static AttributeSyntax GetGeneratedCodeAttributeSyntax()
+        {
+            var version = typeof(CodeGenerator).Assembly.GetName().Version.ToString();
+            return
+                Attribute(ParseName("System.CodeDom.Compiler.GeneratedCodeAttribute"))
+                    .AddArgumentListArguments(
+                        AttributeArgument(CodeGeneratorName.GetLiteralExpression()),
+                        AttributeArgument(version.GetLiteralExpression()));
         }
     }
 }

@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hagar.Abstractions" Version="1.0.0-dev-*" />
+    <PackageReference Include="Hagar" Version="1.0.0-dev-20171021110302" />
+    <PackageReference Include="Hagar.Abstractions" Version="1.0.0-dev-20171021110302" />
   </ItemGroup>
 
 </Project>

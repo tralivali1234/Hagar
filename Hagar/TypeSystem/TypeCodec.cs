@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Hagar.Buffers;
 using Hagar.Utilities;
 
 namespace Hagar.TypeSystem

@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using Hagar.Buffers;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.Utilities;

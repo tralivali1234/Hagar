@@ -1,3 +1,4 @@
+using Hagar.Buffers;
 using Hagar.WireProtocol;
 
 namespace Hagar.Utilities

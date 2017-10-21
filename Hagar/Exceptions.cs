@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace Hagar
 {
-    public static class ExceptionHelper
+    internal static class ExceptionHelper
     {
         public static T ThrowArgumentOutOfRange<T>(string argument) => throw new ArgumentOutOfRangeException(argument);
         public static void ThrowArgumentOutOfRange(string argument) => throw new ArgumentOutOfRangeException(argument);
@@ -202,7 +202,7 @@ namespace Hagar
     [Serializable]
     public class TypeMissingException : HagarException
     {
-        public TypeMissingException() : base($"Expected to encounter a type but none was encountered.")
+        public TypeMissingException() : base("Expected a type but none were encountered.")
         {
         }
 

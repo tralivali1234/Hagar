@@ -1,4 +1,5 @@
 using System;
+using Hagar.Buffers;
 
 namespace Hagar.Utilities
 {

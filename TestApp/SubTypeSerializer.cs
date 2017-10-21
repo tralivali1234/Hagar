@@ -1,4 +1,6 @@
 ﻿using System;
+using Hagar;
+using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
@@ -44,34 +46,21 @@ namespace TestApp
             while (true)
             {
                 var header = reader.ReadFieldHeader(session);
-                //Console.WriteLine(header);
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
                         obj.String = this.stringCodec.ReadValue(reader, session, header);
-                        /*type = header.FieldType ?? typeof(string);
-                        Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
                     case 1:
                         obj.Int = this.intCodec.ReadValue(reader, session, header);
                         break;
                     case 2:
                         obj.Ref = this.objectCodec.ReadValue(reader, session, header);
-                        /*type = header.FieldType ?? typeof(long);
-                        Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
-                    /*case 2:
-                        obj.Ref = this.refSerializer.ReadValue(reader, session, header);
-                        /*type = header.FieldType ?? typeof(long);
-                        Console.WriteLine($"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");#1#
-                        break;*/
                     default:
                         reader.ConsumeUnknownField(session, header);
-                        /*type = header.FieldType;
-                        Console.WriteLine(
-                            $"\tReading UNKNOWN field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
                         break;
                 }
             }

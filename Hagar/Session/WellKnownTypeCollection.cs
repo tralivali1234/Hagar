@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace Hagar.TypeSystem
+namespace Hagar.Session
 {
-    public class WellKnownTypeCollection
+    public sealed class WellKnownTypeCollection
     {
         private readonly Dictionary<uint, Type> wellKnownTypes;
         private readonly Dictionary<Type, uint> wellKnownTypeToIdMap = new Dictionary<Type, uint>();
+
         public WellKnownTypeCollection()
         {
             this.wellKnownTypes = new Dictionary<uint, Type>

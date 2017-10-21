@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Session;
 using Hagar.Utilities;

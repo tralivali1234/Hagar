@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Hagar.WireProtocol
@@ -97,9 +98,16 @@ namespace Hagar.WireProtocol
             return builder.ToString();
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static uint ThrowFieldIdInvalid() => throw new FieldIdNotPresentException();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static SchemaType ThrowSchemaTypeInvalid() => throw new SchemaTypeInvalidException();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Type ThrowFieldTypeInvalid() => throw new FieldTypeInvalidException();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static ExtendedWireType ThrowExtendedWireTypeInvalid() => throw new ExtendedWireTypeInvalidException();
     }
 }

@@ -11,6 +11,7 @@ using Hagar.Utilities;
 using Hagar.ISerializable;
 using Hagar.TypeSystem;
 using Hagar;
+using Hagar.Buffers;
 using Newtonsoft.Json;
 using NodaTime;
 
@@ -227,7 +228,7 @@ namespace TestApp
 
         static void Test<T>(IFieldCodec<T> serializer, T expected)
         {
-            var session = new SerializerSession();
+            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(),new ReferencedObjectCollection());
             var writer = new Writer();
 
             serializer.WriteField(writer, session, 0, typeof(T), expected);
@@ -235,7 +236,7 @@ namespace TestApp
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
             var reader = new Reader(writer.ToBytes());
-            var deserializationContext = new SerializerSession();
+            var deserializationContext = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
             var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
@@ -268,13 +269,13 @@ namespace TestApp
 
         static void TestSkip(IFieldCodec<SubType> serializer, SubType expected)
         {
-            var session = new SerializerSession();
+            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var writer = new Writer();
 
             serializer.WriteField(writer, session, 0, typeof(SubType), expected);
             
             var reader = new Reader(writer.ToBytes());
-            var deserializationContext = new SerializerSession();
+            var deserializationContext = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();
             skipCodec.ReadValue(reader, deserializationContext, initialHeader);

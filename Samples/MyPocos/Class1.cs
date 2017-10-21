@@ -4,6 +4,14 @@ using Hagar;
 
 namespace MyPocos
 {
+    public class X
+    {
+        public void S()
+        {
+            throw new FieldAccessException();
+        }
+    }
+
     [GenerateSerializer]
     public class SomeClassWithSerialzers
     {

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Serialization;
+using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
@@ -99,7 +100,7 @@ namespace Hagar.ISerializable
             if (info == null) return ThrowTypeNotSpecified();
             
             var constructor = this.constructors.GetOrAdd(info.ObjectType, this.createConstructorDelegate);
-            constructor(result, info, session.StreamingContext);
+            constructor(result, info, default(StreamingContext));
             return result;
         }
 

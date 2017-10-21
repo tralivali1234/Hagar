@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Buildalyzer;
 using Buildalyzer.Workspaces;
-using Hagar;
 using Hagar.CodeGenerator;
 using Microsoft.CodeAnalysis;
 
@@ -18,8 +17,9 @@ namespace HagarCodeGen
             var cancellation = CancellationToken.None;
             var compilation = await LoadProject(@"C:\dev\Hagar\Samples\MyPocos\MyPocos.csproj", cancellation);
             var generator = new CodeGenerator(compilation);
-            var result = generator.GenerateCode(cancellation);
-            Console.WriteLine(result);
+            var syntax = generator.GenerateCode(cancellation).NormalizeWhitespace();
+            var source = syntax.ToFullString();
+            Console.WriteLine(source);
         }
 
         private static Task<Compilation> LoadProject(string projectFilePath, CancellationToken cancellationToken)
