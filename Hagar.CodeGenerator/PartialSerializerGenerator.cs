@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -87,10 +88,45 @@ namespace Hagar.CodeGenerator
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fields)
                 .AddMembers(ctor, serializeMethod, deserializeMethod);
-            if (type.IsUnboundGenericType)
+            if (type.IsGenericType)
             {
-#warning handle generic type constraints & variance?
-                classDeclaration = classDeclaration.WithTypeParameterList(TypeParameterList(SeparatedList(type.TypeParameters.Select(tp => TypeParameter(tp.Name)))));
+                classDeclaration = AddGenericTypeConstraints(classDeclaration, type);
+            }
+
+            return classDeclaration;
+        }
+
+        private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, INamedTypeSymbol type)
+        {
+            classDeclaration = classDeclaration.WithTypeParameterList(TypeParameterList(SeparatedList(type.TypeParameters.Select(tp => TypeParameter(tp.Name)))));
+            var constraints = new List<TypeParameterConstraintSyntax>();
+            foreach (var tp in type.TypeParameters)
+            {
+                constraints.Clear();
+                if (tp.HasReferenceTypeConstraint)
+                {
+                    constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+                }
+
+                if (tp.HasValueTypeConstraint)
+                {
+                    constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
+                }
+
+                foreach (var c in tp.ConstraintTypes)
+                {
+                    constraints.Add(TypeConstraint(c.ToTypeSyntax()));
+                }
+
+                if (tp.HasConstructorConstraint)
+                {
+                    constraints.Add(ConstructorConstraint());
+                }
+
+                if (constraints.Count > 0)
+                {
+                    classDeclaration = classDeclaration.AddConstraintClauses(TypeParameterConstraintClause(tp.Name).AddConstraints(constraints.ToArray()));
+                }
             }
 
             return classDeclaration;
