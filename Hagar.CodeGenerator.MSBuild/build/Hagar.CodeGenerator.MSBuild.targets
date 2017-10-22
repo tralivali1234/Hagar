@@ -1,31 +1,41 @@
 <Project TreatAsLocalProperty="CodeGenDirectory;IsCore;TaskAssembly;TaskFolder;OutputFileName">
   <PropertyGroup>
-    <TaskFolder>netcoreapp2.0</TaskFolder>
-    <TaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(TaskFolder)\Hagar.CodeGenerator.MSBuild.dll</TaskAssembly>
+    <TaskAssembly Condition="'$(CodeGeneratorAssembly)' != ''">$(CodeGeneratorAssembly)</TaskAssembly>
+    <IsCore Condition=" '$(MSBuildRuntimeType)' == 'Core' and '$(CodeGeneratorAssembly)' == ''">true</IsCore>
+    <TaskAssembly Condition=" '$(IsCore)' == 'true' and '$(TaskAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.0\Hagar.CodeGenerator.MSBuild.dll</TaskAssembly>
+    <TaskAssembly Condition=" '$(IsCore)' != 'true' and '$(TaskAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net47\Hagar.CodeGenerator.MSBuild.exe</TaskAssembly>
     <CodeGenDirectory Condition="'$([System.IO.Path]::IsPathRooted($(IntermediateOutputPath)))' == 'true'">$(IntermediateOutputPath)</CodeGenDirectory>
     <CodeGenDirectory Condition="'$(CodeGenDirectory)' == ''">$(ProjectDir)$(IntermediateOutputPath)</CodeGenDirectory>
     <OutputFileName>$(CodeGenDirectory)$(TargetName).hagar.g.cs</OutputFileName>
     <CodeGeneratorEnabled Condition="'$(DesignTimeBuild)' != 'true'">true</CodeGeneratorEnabled>
   </PropertyGroup>
 
-  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GenerateCode" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true'" />
+  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true' and '$(IsCore)' == 'true'" />
 
-  <!-- This target is run just before Compile -->
   <Target Name="GenerateCode"
           BeforeTargets="AssignTargetPaths"
           Condition="'$(CodeGeneratorEnabled)' == 'true'"
           Inputs="@(Compile)"
           Outputs="$(OutputFileName)">
-    <GenerateCode ProjectFile="$(MSBuildProjectFullPath)" OutputFile="$(OutputFileName)" />
+    <GetDotNetHost Condition="'$(DotNetHost)' == '' and '$(IsCore)' == 'true' ">
+      <Output TaskParameter="DotNetHost" PropertyName="DotNetHost" />
+    </GetDotNetHost>
+    
+    <!-- If building on .NET Core, use dotnet to execute the process. -->
+    <Exec Command="&quot;$(DotNetHost)&quot; &quot;$(TaskAssembly)&quot; &quot;$(MSBuildProjectFullPath)&quot; &quot;$(OutputFileName)&quot;" Outputs="$(OutputFileName)" Condition=" '$(IsCore)' == 'true'" />
+
+    <!-- If not building on .NET Core, execute the process directly. -->
+    <Exec Command="&quot;$(TaskAssembly)&quot; &quot;$(MSBuildProjectFullPath)&quot; &quot;$(OutputFileName)&quot;" Outputs="$(OutputFileName)" Condition=" '$(IsCore)' != 'true'" />
+    
     <ItemGroup>
       <Compile Include="$(OutputFileName)"/>
       <FileWrites Include="$(OutputFileName)"/>
     </ItemGroup>
   </Target>
-  
+
   <Target Name="IncludeCodegenOutputDuringDesignTimeBuild"
-        BeforeTargets="AssignTargetPaths"
-        Condition="'$(CodeGeneratorEnabled)' != 'true' and Exists('$(OutputFileName)')">
+          BeforeTargets="AssignTargetPaths"
+          Condition="'$(CodeGeneratorEnabled)' != 'true' and Exists('$(OutputFileName)')">
     <ItemGroup>
       <Compile Include="$(OutputFileName)"/>
       <FileWrites Include="$(OutputFileName)"/>

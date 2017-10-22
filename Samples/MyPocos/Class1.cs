@@ -32,7 +32,6 @@ namespace MyPocos
         public int IntProperty { get; set; }
     }
 
-
     [GenerateSerializer]
     public class GenericPoco<T>
     {

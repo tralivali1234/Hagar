@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
+
+#if NETCOREAPP2_0
+using System.Runtime.Loader;
+#endif
 
 namespace Hagar.CodeGenerator.MSBuild
 {
@@ -72,6 +75,7 @@ namespace Hagar.CodeGenerator.MSBuild
 
         public Assembly AssemblyLoadContextResolving(AssemblyLoadContext context, AssemblyName name)
         {
+            Console.WriteLine($"Attempting to load assembly: {name} / {name.FullName}");
             // Attempt to resolve the library from one of the dependency contexts.
             var library = this.resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
             if (library == null) return null;
@@ -118,5 +122,11 @@ namespace Hagar.CodeGenerator.MSBuild
                 return null;
             }
         }
+
+#if !NETCOREAPP2_0
+        internal class AssemblyLoadContext
+        {
+        }
+#endif
     }
 }

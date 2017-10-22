@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFramework>
+    <TargetFramework Condition=" '$(OS)' == 'Windows_NT' " />
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
     <AssemblyName>Hagar.CodeGenerator.MSBuild</AssemblyName>
@@ -29,6 +32,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" Version="15.3.409" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.3.409" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" PrivateAssets="All" />
     <PackageReference Include="Buildalyzer" Version="0.1.6" PrivateAssets="All" />
     <PackageReference Include="Buildalyzer.Workspaces" Version="0.1.6" PrivateAssets="All" />
@@ -39,8 +43,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.4.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" PrivateAssets="All" />
-    <PackageReference Include="System.Runtime" Version="4.3.0" PrivateAssets="All" />
-    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" PrivateAssets="All" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" PrivateAssets="All" />
+    <PackageReference Include="System.Security.Principal" Version="4.3.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
