@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Hagar.Json
 {
-    public class JsonCodec : IObjectCodec
+    public class JsonCodec : IMultiCodec
     {
         private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SelfType = typeof(JsonCodec);

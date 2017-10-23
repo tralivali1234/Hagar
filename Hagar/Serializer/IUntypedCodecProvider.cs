@@ -12,7 +12,7 @@ namespace Hagar.Serializer
         IFieldCodec<object> TryGetCodec(Type fieldType);
     }
 
-    public interface ITypedCodecProvider : IUntypedCodecProvider
+    public interface ITypedCodecProvider
     {
         IFieldCodec<TField> GetCodec<TField>();
         IFieldCodec<TField> TryGetCodec<TField>();
@@ -23,26 +23,27 @@ namespace Hagar.Serializer
         object InnerCodec { get; }
     }
 
-    public interface IObjectCodec : IFieldCodec<object>
+    public interface IMultiCodec : IFieldCodec<object>
     {
         bool IsSupportedType(Type type);
     }
 
-    public class CodecProvider : ITypedCodecProvider
+    public class CodecProvider : ITypedCodecProvider, IUntypedCodecProvider
     {
         private static readonly Type ObjectType = typeof(object);
         private static readonly Type OpenGenericCodecType = typeof(IFieldCodec<>);
-        private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(TypedCodecWrapper).GetMethod(nameof(TypedCodecWrapper.Create), BindingFlags.Public | BindingFlags.Static);
+        private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(CodecWrapper).GetMethod(nameof(CodecWrapper.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
 
-        private readonly CachedReadConcurrentDictionary<Type, object> adaptedCodecs = new CachedReadConcurrentDictionary<Type, object>();
-        private readonly Dictionary<Type, object> codecInstances;
-        private readonly List<IObjectCodec> dynamicCodecs;
+        private readonly CachedReadConcurrentDictionary<Type, IFieldCodec> adaptedCodecs = new CachedReadConcurrentDictionary<Type, IFieldCodec>();
+        private readonly Dictionary<Type, IFieldCodec> codecInstances;
+        private readonly List<IMultiCodec> multiCodecs;
         private readonly VoidCodec voidCodec = new VoidCodec();
 
-        public CodecProvider(Dictionary<Type, object> codecInstances, List<IObjectCodec> dynamicCodecs)
+#warning consider replacing with DI container.
+        public CodecProvider(Dictionary<Type, IFieldCodec> codecInstances, List<IMultiCodec> multiCodecs)
         {
             this.codecInstances = codecInstances;
-            this.dynamicCodecs = dynamicCodecs;
+            this.multiCodecs = multiCodecs;
         }
 
         public IFieldCodec<TField> TryGetCodec<TField>() => this.TryGetCodec<TField>(typeof(TField));
@@ -56,16 +57,16 @@ namespace Hagar.Serializer
         private IFieldCodec<TField> TryGetCodec<TField>(Type fieldType)
         {
             // Try to find the codec from the configured codecs.
-            object untypedResult;
+            IFieldCodec untypedResult;
             // TODO: Document why voidCodec is useful.
             if (fieldType == null) untypedResult = this.voidCodec;
             else if (!this.codecInstances.TryGetValue(fieldType, out untypedResult))
             {
-                foreach (var genericCodec in this.dynamicCodecs)
+                foreach (var dynamicCodec in this.multiCodecs)
                 {
-                    if (genericCodec.IsSupportedType(fieldType))
+                    if (dynamicCodec.IsSupportedType(fieldType))
                     {
-                        untypedResult = genericCodec;
+                        untypedResult = dynamicCodec;
                         break;
                     }
                 }
@@ -95,7 +96,7 @@ namespace Hagar.Serializer
                 case IFieldCodec<TField> typedCodec:
                     return typedCodec;
                 case IFieldCodec<object> objectCodec:
-                    typedResult = new UntypedCodecWrapper<TField>(objectCodec);
+                    typedResult = CodecWrapper.CreatedTypedFromUntyped<TField>(objectCodec);
                     break;
                 default:
                     typedResult = TryWrapCodec(untypedResult);

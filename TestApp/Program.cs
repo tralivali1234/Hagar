@@ -21,7 +21,7 @@ namespace TestApp
     {
         public static void Main(string[] args)
         {
-            var codecs = new Dictionary<Type, object>
+            var codecs = new Dictionary<Type, IFieldCodec>
             {
                 [typeof(bool)] = new BoolCodec(),
                 [typeof(char)] = new CharCodec(),
@@ -35,11 +35,11 @@ namespace TestApp
                 [typeof(long)] = new Int64Codec(),
                 [typeof(Guid)] = new GuidCodec(),
             };
-            var genericCodecs = new List<IObjectCodec>();
+            var genericCodecs = new List<IMultiCodec>();
             var codecProvider = new CodecProvider(codecs, genericCodecs);
 
             var typeSerializerCodec = new TypeSerializerCodec(codecProvider);
-            var typeCodec = TypedCodecWrapper.Create<Type, TypeSerializerCodec>(typeSerializerCodec);
+            var typeCodec = CodecWrapper.CreateUntypedFromTyped<Type, TypeSerializerCodec>(typeSerializerCodec);
             codecs[typeof(Type)] = typeCodec;
             // ReSharper disable once PossibleMistakenCallToGetType.2
             codecs[typeof(Type).GetType()] = typeCodec;

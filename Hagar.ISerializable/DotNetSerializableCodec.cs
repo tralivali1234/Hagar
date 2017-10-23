@@ -12,7 +12,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
 {
-    public class DotNetSerializableCodec : IObjectCodec
+    public class DotNetSerializableCodec : IMultiCodec
     {
 #warning implement support for callbacks
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
