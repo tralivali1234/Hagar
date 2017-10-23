@@ -10,13 +10,13 @@ namespace Hagar.Codec
 {
     public class TypeSerializerCodec : IFieldCodec<Type>
     {
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SchemaTypeType = typeof(SchemaType);
         private static readonly Type TypeType = typeof(Type);
         private static readonly Type ByteArrayType = typeof(byte[]);
         private static readonly Type UIntType = typeof(uint);
 
-        public TypeSerializerCodec(ICodecProvider codecProvider)
+        public TypeSerializerCodec(IUntypedCodecProvider codecProvider)
         {
             this.codecProvider = codecProvider;
         }

@@ -2,24 +2,23 @@ using System;
 using Hagar.Buffers;
 using Hagar.Serializer;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public static class FieldCodecWrapper
+    public static class TypedCodecWrapper
     {
         public static IFieldCodec<object> Create<TField, TCodec>(TCodec codec) where TCodec : IFieldCodec<TField>
         {
-            return new FieldCodecWrapper<TField, TCodec>(codec);
+            return new TypedCodecWrapper<TField, TCodec>(codec);
         }
     }
 
-    public class FieldCodecWrapper<TField, TCodec> : IFieldCodec<object>, ICodecWrapper where TCodec : IFieldCodec<TField>
+    public class TypedCodecWrapper<TField, TCodec> : IFieldCodec<object>, IWrappedCodec where TCodec : IFieldCodec<TField>
     {
         private readonly TCodec codec;
 
-        public FieldCodecWrapper(TCodec codec)
+        public TypedCodecWrapper(TCodec codec)
         {
             this.codec = codec;
         }
@@ -37,11 +36,11 @@ namespace Hagar.Codec
         public object InnerCodec => this.codec;
     }
 
-    public class FieldCodecBase<TField, TCodec> : IFieldCodec<object> where TCodec : class, IFieldCodec<TField>
+    public class TypedCodecBase<TField, TCodec> : IFieldCodec<object> where TCodec : class, IFieldCodec<TField>
     {
         private readonly TCodec codec;
 
-        public FieldCodecBase()
+        public TypedCodecBase()
         {
             this.codec = this as TCodec;
             if (this.codec == null) ThrowInvalidSubclass();
@@ -59,15 +58,15 @@ namespace Hagar.Codec
 
         private static void ThrowInvalidSubclass()
         {
-            throw new InvalidCastException($"Subclasses of {typeof(FieldCodecBase<TField, TCodec>)} must implement/derive from {typeof(TCodec)}.");
+            throw new InvalidCastException($"Subclasses of {typeof(TypedCodecBase<TField, TCodec>)} must implement/derive from {typeof(TCodec)}.");
         }
     }
 
-    public class TypedCodecWrapper<TField> : ICodecWrapper, IFieldCodec<TField>
+    public class UntypedCodecWrapper<TField> : IWrappedCodec, IFieldCodec<TField>
     {
         private readonly IFieldCodec<object> codec;
 
-        public TypedCodecWrapper(IFieldCodec<object> codec)
+        public UntypedCodecWrapper(IFieldCodec<object> codec)
         {
             this.codec = codec;
         }

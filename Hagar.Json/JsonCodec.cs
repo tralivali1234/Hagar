@@ -10,14 +10,14 @@ using Newtonsoft.Json;
 
 namespace Hagar.Json
 {
-    public class JsonCodec : IGenericCodec
+    public class JsonCodec : IObjectCodec
     {
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SelfType = typeof(JsonCodec);
         private readonly Func<Type, bool> isSupportedFunc;
         private readonly JsonSerializerSettings settings;
 
-        public JsonCodec(ICodecProvider codecProvider, JsonSerializerSettings settings = null, Func<Type, bool> isSupportedFunc = null)
+        public JsonCodec(IUntypedCodecProvider codecProvider, JsonSerializerSettings settings = null, Func<Type, bool> isSupportedFunc = null)
         {
             this.codecProvider = codecProvider;
             this.settings = settings ?? new JsonSerializerSettings

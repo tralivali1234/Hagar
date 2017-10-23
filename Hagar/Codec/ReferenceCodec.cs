@@ -35,12 +35,12 @@ namespace Hagar.Codec
             return true;
         }
 
-        public static T ReadReference<T>(Reader reader, SerializerSession session, Field field, ICodecProvider serializers)
+        public static T ReadReference<T>(Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers)
         {
             return (T) ReadReference(reader, session, field, serializers, typeof(T));
         }
 
-        public static object ReadReference(Reader reader, SerializerSession session, Field field, ICodecProvider serializers, Type expectedType)
+        public static object ReadReference(Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
             if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
@@ -60,7 +60,7 @@ namespace Hagar.Codec
             Reader reader,
             SerializerSession session,
             Field field,
-            ICodecProvider serializers,
+            IUntypedCodecProvider serializers,
             UnknownFieldMarker marker,
             uint reference,
             Type lastResortFieldType)

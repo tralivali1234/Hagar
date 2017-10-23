@@ -6,7 +6,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class BoolCodec : FieldCodecBase<bool, BoolCodec>, IFieldCodec<bool>
+    public class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
     {
         void IFieldCodec<bool>.WriteField(
             Writer writer,
@@ -27,7 +27,7 @@ namespace Hagar.Codec
         }
     }
     
-    public class CharCodec : FieldCodecBase<char, CharCodec>, IFieldCodec<char>
+    public class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
     {
         void IFieldCodec<char>.WriteField(
             Writer writer,
@@ -48,7 +48,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class ByteCodec : FieldCodecBase<byte, ByteCodec>, IFieldCodec<byte>
+    public class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>
     {
         void IFieldCodec<byte>.WriteField(
             Writer writer,
@@ -69,7 +69,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class SByteCodec : FieldCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
+    public class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
     {
         void IFieldCodec<sbyte>.WriteField(
             Writer writer,
@@ -90,7 +90,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class UInt16Codec : FieldCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
+    public class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
         ushort IFieldCodec<ushort>.ReadValue(Reader reader, SerializerSession session, Field field)
         {
@@ -111,7 +111,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class Int16Codec : FieldCodecBase<short, Int16Codec>, IFieldCodec<short>
+    public class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>
     {
         void IFieldCodec<short>.WriteField(
             Writer writer,
@@ -132,7 +132,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class UInt32Codec : FieldCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
+    public class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
     {
         void IFieldCodec<uint>.WriteField(
             Writer writer,
@@ -161,7 +161,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class Int32Codec : FieldCodecBase<int, Int32Codec>, IFieldCodec<int>
+    public class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>
     {
         void IFieldCodec<int>.WriteField(
             Writer writer,
@@ -190,7 +190,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class Int64Codec : FieldCodecBase<long, Int64Codec>, IFieldCodec<long>
+    public class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
         void IFieldCodec<long>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value)
         {
@@ -227,7 +227,7 @@ namespace Hagar.Codec
         }
     }
 
-    public class UInt64Codec : FieldCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
+    public class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
     {
         void IFieldCodec<ulong>.WriteField(
             Writer writer,

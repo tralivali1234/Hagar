@@ -21,7 +21,7 @@ namespace TestApp
     {
         public static void Main(string[] args)
         {
-            var codecs = new Dictionary<Type, IFieldCodec<object>>
+            var codecs = new Dictionary<Type, object>
             {
                 [typeof(bool)] = new BoolCodec(),
                 [typeof(char)] = new CharCodec(),
@@ -33,13 +33,13 @@ namespace TestApp
                 [typeof(int)] = new Int32Codec(),
                 [typeof(ulong)] = new UInt64Codec(),
                 [typeof(long)] = new Int64Codec(),
-                [typeof(Guid)] = FieldCodecWrapper.Create<Guid, GuidCodec>(new GuidCodec()),
+                [typeof(Guid)] = new GuidCodec(),
             };
-            var genericCodecs = new List<IGenericCodec>();
+            var genericCodecs = new List<IObjectCodec>();
             var codecProvider = new CodecProvider(codecs, genericCodecs);
 
             var typeSerializerCodec = new TypeSerializerCodec(codecProvider);
-            var typeCodec = FieldCodecWrapper.Create<Type, TypeSerializerCodec>(typeSerializerCodec);
+            var typeCodec = TypedCodecWrapper.Create<Type, TypeSerializerCodec>(typeSerializerCodec);
             codecs[typeof(Type)] = typeCodec;
             // ReSharper disable once PossibleMistakenCallToGetType.2
             codecs[typeof(Type).GetType()] = typeCodec;
@@ -75,7 +75,7 @@ namespace TestApp
                     partialSerializer,
                     codecProvider);
             var testString = "hello, hagar";
-/*            Test(
+            Test(
                 serializer,
                 new SubType
                 {
@@ -155,7 +155,7 @@ namespace TestApp
                 {
                     Number = 7,
                     String = "bananas!"
-                });*/
+                });
 
             var mySerializable = new MySerializableClass
             {
@@ -163,10 +163,10 @@ namespace TestApp
                 Integer = 38,
                 Self = null,
             };
-            /*Test(
+            Test(
                 new AbstractTypeSerializer<object>(codecProvider),
                 mySerializable
-            );*/
+            );
 
             mySerializable.Self = mySerializable;
             Test(

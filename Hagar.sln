@@ -19,8 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator", "Hagar.CodeGenerator\Hagar.CodeGenerator.csproj", "{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HagarCodeGen", "HagarCodeGen\HagarCodeGen.csproj", "{ADBB87A5-E989-4C0F-9B24-CBEC82063846}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Abstractions", "Hagar.Abstractions\Hagar.Abstractions.csproj", "{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild", "Hagar.CodeGenerator.MSBuild\Hagar.CodeGenerator.MSBuild.csproj", "{E027C482-0B30-4875-8929-CA0B7831C786}"
@@ -63,10 +61,6 @@ Global
 		{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADBB87A5-E989-4C0F-9B24-CBEC82063846}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADBB87A5-E989-4C0F-9B24-CBEC82063846}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADBB87A5-E989-4C0F-9B24-CBEC82063846}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADBB87A5-E989-4C0F-9B24-CBEC82063846}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Serializer
@@ -14,9 +13,9 @@ namespace Hagar.Serializer
     /// <typeparam name="TField"></typeparam>
     public class AbstractTypeSerializer<TField> : IFieldCodec<TField> where TField : class
     {
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
 
-        public AbstractTypeSerializer(ICodecProvider codecProvider)
+        public AbstractTypeSerializer(IUntypedCodecProvider codecProvider)
         {
             this.codecProvider = codecProvider;
         }

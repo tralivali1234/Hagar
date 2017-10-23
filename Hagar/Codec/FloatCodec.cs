@@ -6,7 +6,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class FloatCodec : FieldCodecBase<float, FloatCodec>, IFieldCodec<float>
+    public class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
         void IFieldCodec<float>.WriteField(
             Writer writer,
@@ -55,7 +55,7 @@ namespace Hagar.Codec
             $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(float)}.");
     }
 
-    public class DoubleCodec : FieldCodecBase<double, DoubleCodec>, IFieldCodec<double>
+    public class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
 
         void IFieldCodec<double>.WriteField(
@@ -91,7 +91,7 @@ namespace Hagar.Codec
             $"{nameof(wireType)} {wireType} is not supported by this codec.");
     }
 
-    public class DecimalCodec : FieldCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
+    public class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
         void IFieldCodec<decimal>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
         {

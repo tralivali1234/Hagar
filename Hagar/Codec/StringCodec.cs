@@ -8,10 +8,10 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codec
 {
-    public class StringCodec : FieldCodecBase<string, StringCodec>, IFieldCodec<string>
+    public class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        private readonly ICodecProvider codecProvider;
-        public StringCodec(ICodecProvider codecProvider)
+        private readonly IUntypedCodecProvider codecProvider;
+        public StringCodec(IUntypedCodecProvider codecProvider)
         {
             this.codecProvider = codecProvider;
         }

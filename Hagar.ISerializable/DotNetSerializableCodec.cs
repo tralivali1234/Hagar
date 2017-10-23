@@ -12,13 +12,13 @@ using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
 {
-    public class DotNetSerializableCodec : IGenericCodec
+    public class DotNetSerializableCodec : IObjectCodec
     {
 #warning implement support for callbacks
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> typeCodec;
         private readonly ITypeFilter typeFilter;
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
         private readonly SerializationConstructorFactory constructorFactory = new SerializationConstructorFactory();
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
 
@@ -38,7 +38,7 @@ namespace Hagar.ISerializable
             IFieldCodec<string> stringCodec,
             IFieldCodec<object> objectCodec,
             ITypeFilter typeFilter,
-            ICodecProvider codecProvider)
+            IUntypedCodecProvider codecProvider)
         {
             this.typeCodec = typeCodec;
             this.typeFilter = typeFilter;

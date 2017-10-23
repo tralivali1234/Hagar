@@ -22,9 +22,9 @@ namespace Hagar.Serializer
     {
         private readonly TActivator activator;
         private readonly TSerializer serializer;
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
 
-        public ConcreteTypeSerializer(TActivator activator, TSerializer serializer, ICodecProvider codecProvider)
+        public ConcreteTypeSerializer(TActivator activator, TSerializer serializer, IUntypedCodecProvider codecProvider)
         {
             this.activator = activator;
             this.serializer = serializer;

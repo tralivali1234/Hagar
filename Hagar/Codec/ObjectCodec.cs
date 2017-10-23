@@ -9,10 +9,10 @@ namespace Hagar.Codec
 {
     public class ObjectCodec : IFieldCodec<object>
     {
-        private readonly ICodecProvider codecProvider;
+        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type ObjectType = typeof(object);
 
-        public ObjectCodec(ICodecProvider codecProvider)
+        public ObjectCodec(IUntypedCodecProvider codecProvider)
         {
             this.codecProvider = codecProvider;
         }
