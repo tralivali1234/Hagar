@@ -163,7 +163,6 @@ namespace Hagar.CodeGenerator
                         return FieldDeclaration(VariableDeclaration(description.FieldType.ToTypeSyntax(), SingletonSeparatedList(VariableDeclarator(description.FieldName))))
                             .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword));
                 }
-                
             }
         }
     
@@ -223,7 +222,7 @@ namespace Hagar.CodeGenerator
         private static ITypeSymbol GetExpectedType(ITypeSymbol type, LibraryTypes libraryTypes)
         {
             if (type is IArrayTypeSymbol)
-                return libraryTypes.Object;
+                return type;
             if (type is IPointerTypeSymbol pointerType)
                 throw new NotSupportedException($"Cannot serialize pointer type {pointerType.Name}");
             return type;

@@ -13,7 +13,7 @@
   <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true' and '$(IsCore)' == 'true'" />
 
   <Target Name="GenerateCode"
-          BeforeTargets="AssignTargetPaths"
+          BeforeTargets="CoreCompile"
           Condition="'$(CodeGeneratorEnabled)' == 'true'"
           Inputs="@(Compile);@(Reference)"
           Outputs="$(OutputFileName)">
