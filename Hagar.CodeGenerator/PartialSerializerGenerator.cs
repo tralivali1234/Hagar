@@ -254,7 +254,7 @@ namespace Hagar.CodeGenerator
             }
 
             // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
-            var previousFieldId = 0;
+            uint previousFieldId = 0;
             foreach (var member in typeDescription.Members.OrderBy(m => m.FieldId))
             {
                 var fieldIdDelta = member.FieldId - previousFieldId;
@@ -321,7 +321,7 @@ namespace Hagar.CodeGenerator
             return MethodDeclaration(returnType, DeserializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
-                    Parameter(readerParam.Identifier).WithType(libraryTypes.Writer.ToTypeSyntax()),
+                    Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()),
                     Parameter(sessionParam.Identifier).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
                     Parameter(instanceParam.Identifier).WithType(typeDescription.Type.ToTypeSyntax()))
                 .AddBodyStatements(body.ToArray());

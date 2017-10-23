@@ -13,7 +13,7 @@ namespace Hagar.CodeGenerator
 {
     internal interface IMemberDescription
     {
-        int FieldId { get; }
+        uint FieldId { get; }
 
         ISymbol Member { get; }
         ITypeSymbol Type { get; }
@@ -21,27 +21,27 @@ namespace Hagar.CodeGenerator
 
     internal class FieldDescription : IMemberDescription
     {
-        public FieldDescription(int fieldId, IFieldSymbol field)
+        public FieldDescription(uint fieldId, IFieldSymbol field)
         {
             this.FieldId = fieldId;
             this.Field = field;
         }
 
         public IFieldSymbol Field { get; }
-        public int FieldId { get; }
+        public uint FieldId { get; }
         public ISymbol Member => this.Field;
         public ITypeSymbol Type => this.Field.Type;
     }
 
     internal class PropertyDescription : IMemberDescription
     {
-        public PropertyDescription(int fieldId, IPropertySymbol property)
+        public PropertyDescription(uint fieldId, IPropertySymbol property)
         {
             this.FieldId = fieldId;
             this.Property = property;
         }
 
-        public int FieldId { get; }
+        public uint FieldId { get; }
         public ISymbol Member => this.Property;
         public ITypeSymbol Type => this.Property.Type;
         public IPropertySymbol Property { get; }
@@ -83,20 +83,10 @@ namespace Hagar.CodeGenerator
             var members = new List<MemberDeclarationSyntax>();
             foreach (var type in serializableTypes)
             {
-                Console.WriteLine($"Will generate serializer for: {type}");
-
-                var baseType = type.Type.BaseType;
-                if (baseType != null)
-                {
-                    Console.WriteLine($"\t[BaseType] Type: {baseType.MetadataName}");
-                }
-
-                foreach (var field in type.Members)
-                {
-                    Console.WriteLine($"\t[Member] Id: {field.FieldId} Name: {field.Member.Name} Type: {field.Type.MetadataName}");
-                }
-
-                members.Add(PartialSerializerGenerator.GenerateSerializer(this.compilation, type));
+                members.Add(
+                    NamespaceDeclaration(ParseName(type.Type.ContainingNamespace.Name ?? "HagarGeneratedCode"))
+                        .WithMembers(List(new MemberDeclarationSyntax[] {PartialSerializerGenerator.GenerateSerializer(this.compilation, type)}))
+                        .WithUsings(List(new[] {UsingDirective(ParseName("Hagar.Codec"))})));
             }
 
             return CompilationUnit().WithAttributeLists(SingletonList(GetGeneratedCodeAttribute())).WithMembers(List(members));
@@ -138,7 +128,7 @@ namespace Hagar.CodeGenerator
 
                 var fieldIdAttr = member.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.fieldIdAttribute));
                 if (fieldIdAttr == null) continue;
-                var id = (int)fieldIdAttr.ConstructorArguments.First().Value;
+                var id = (uint)fieldIdAttr.ConstructorArguments.First().Value;
 
                 if (member is IPropertySymbol prop)
                 {

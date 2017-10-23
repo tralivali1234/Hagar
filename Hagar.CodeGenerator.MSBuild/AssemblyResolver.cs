@@ -75,7 +75,6 @@ namespace Hagar.CodeGenerator.MSBuild
 
         public Assembly AssemblyLoadContextResolving(AssemblyLoadContext context, AssemblyName name)
         {
-            Console.WriteLine($"Attempting to load assembly: {name} / {name.FullName}");
             // Attempt to resolve the library from one of the dependency contexts.
             var library = this.resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
             if (library == null) return null;

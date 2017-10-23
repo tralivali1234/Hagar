@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Buildalyzer;
@@ -28,7 +30,7 @@ namespace Hagar.CodeGenerator.MSBuild
         
         public async Task<bool> ExecuteAsync(CancellationToken cancellation)
         {
-            //using (new AssemblyResolver())
+            using (new AssemblyResolver())
             {
                 return await Execute(cancellation);
             }
@@ -53,13 +55,16 @@ namespace Hagar.CodeGenerator.MSBuild
             }
         }
 
-        private static Task<Compilation> LoadProject(string projectFilePath, CancellationToken cancellationToken)
+        private static async Task<Compilation> LoadProject(string projectFilePath, CancellationToken cancellationToken)
         {
-            var manager = new AnalyzerManager();
+            var log = new StringBuilder();
+            var manager = new AnalyzerManager(log);
             var analyzer = manager.GetProject(projectFilePath);
             var workspace = analyzer.GetWorkspace();
             var project = workspace.CurrentSolution.Projects.Single();
-            return project.GetCompilationAsync(cancellationToken);
+            var result = await project.GetCompilationAsync(cancellationToken);
+            Console.WriteLine(log);
+            return result;
         }
     }
 }

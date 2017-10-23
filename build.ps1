@@ -1,3 +1,3 @@
 $env:VersionDateSuffix = [System.DateTime]::Now.ToString("yyyyMMddHHmmss");
-dotnet build;
-dotnet pack;
+dotnet build -bl:Build.binlog;
+dotnet pack -bl:Pack.binlog;

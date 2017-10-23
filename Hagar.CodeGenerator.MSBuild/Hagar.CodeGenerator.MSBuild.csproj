@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
 
   <PropertyGroup>
-    <TargetFramework Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFramework>
-    <TargetFramework Condition=" '$(OS)' == 'Windows_NT' " />
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <NoPackageAnalysis>true</NoPackageAnalysis>
@@ -13,6 +12,7 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <DevelopmentDependency>true</DevelopmentDependency>
     <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
   </PropertyGroup>
@@ -31,31 +31,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.3.409" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.3.409" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" PrivateAssets="All" />
-    <PackageReference Include="Buildalyzer" Version="0.1.6" PrivateAssets="All" />
-    <PackageReference Include="Buildalyzer.Workspaces" Version="0.1.6" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Features" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.4.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" PrivateAssets="All" />
+    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
   </ItemGroup>
   
-  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+  <ItemGroup>
+    <PackageReference Include="Buildalyzer" Version="0.1.6" PrivateAssets="All" />
+    <PackageReference Include="Buildalyzer.Workspaces" Version="0.1.6" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)'=='Windows_NT'">
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" PrivateAssets="All" />
     <PackageReference Include="System.Security.Principal" Version="4.3.0" PrivateAssets="All" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
+    <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
   </ItemGroup>
+
 
   <Target Name="PostBuildPublish" AfterTargets="Build">
     <!-- So that we can create a nuget package which includes all dependencies, we publish the build. -->
@@ -69,7 +63,7 @@
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
    -->
     <ItemGroup>
-      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
+      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
       <_PackageFiles Include="@(PublishedFiles)">

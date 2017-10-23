@@ -15,7 +15,7 @@
   <Target Name="GenerateCode"
           BeforeTargets="AssignTargetPaths"
           Condition="'$(CodeGeneratorEnabled)' == 'true'"
-          Inputs="@(Compile)"
+          Inputs="@(Compile);@(Reference)"
           Outputs="$(OutputFileName)">
     <GetDotNetHost Condition="'$(DotNetHost)' == '' and '$(IsCore)' == 'true' ">
       <Output TaskParameter="DotNetHost" PropertyName="DotNetHost" />
