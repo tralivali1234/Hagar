@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hagar" Version="1.0.0-dev-20171022102614" />
-    <PackageReference Include="Hagar.Abstractions" Version="1.0.0-dev-20171022102614" />
-    <PackageReference Include="Hagar.CodeGenerator.MSBuild" Version="1.0.0-dev-20171022102614" />
+    <PackageReference Include="Hagar" Version="1.0.0-dev-20171023192948" />
+    <PackageReference Include="Hagar.Abstractions" Version="1.0.0-dev-20171023192948" />
+    <PackageReference Include="Hagar.CodeGenerator.MSBuild" Version="1.0.0-dev-20171023192948" />
   </ItemGroup>
 
 </Project>
