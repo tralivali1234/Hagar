@@ -6,8 +6,6 @@ using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
-using Hagar.TypeSystem;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
@@ -17,7 +15,6 @@ namespace Hagar.ISerializable
 #warning implement support for callbacks
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> typeCodec;
-        private readonly ITypeFilter typeFilter;
         private readonly IUntypedCodecProvider untypedCodecProvider;
         private readonly SerializationConstructorFactory constructorFactory = new SerializationConstructorFactory();
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
@@ -37,11 +34,9 @@ namespace Hagar.ISerializable
             IFieldCodec<Type> typeCodec,
             IFieldCodec<string> stringCodec,
             IFieldCodec<object> objectCodec,
-            ITypeFilter typeFilter,
             IUntypedCodecProvider untypedCodecProvider)
         {
             this.typeCodec = typeCodec;
-            this.typeFilter = typeFilter;
             this.untypedCodecProvider = untypedCodecProvider;
             this.entrySerializer = new SerializationEntryCodec(stringCodec, objectCodec);
             this.createConstructorDelegate = this.constructorFactory.GetSerializationConstructorInvoker;
@@ -82,7 +77,6 @@ namespace Hagar.ISerializable
                 {
                     case 0:
                         var type = this.typeCodec.ReadValue(reader, session, header);
-                        if (!this.typeFilter.IsPermissible(type)) ThrowIllegalType(type);
                         info = new SerializationInfo(type, FormatterConverter);
                         result = FormatterServices.GetUninitializedObject(type);
                         ReferenceCodec.RecordObject(session, result);

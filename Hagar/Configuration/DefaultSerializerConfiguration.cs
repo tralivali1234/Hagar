@@ -1,12 +1,13 @@
-﻿using Hagar.Metadata;
+﻿using Hagar.Codec;
+using Microsoft.Extensions.Options;
 
-namespace Hagar.Codec
+namespace Hagar.Configuration
 {
-    internal class DefaultCodecProvider : IMetadataProvider<CodecMetadata>
+    internal class DefaultSerializerConfiguration : IConfigureOptions<SerializerConfiguration>
     {
-        public void PopulateMetadata(CodecMetadata metadata)
+        public void Configure(SerializerConfiguration configuration)
         {
-            var codecs = metadata.FieldCodecs;
+            var codecs = configuration.FieldCodecs;
             codecs.Add(typeof(BoolCodec));
             codecs.Add(typeof(CharCodec));
             codecs.Add(typeof(ByteCodec));

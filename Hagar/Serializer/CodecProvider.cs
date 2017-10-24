@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Hagar.Codec;
-using Hagar.Metadata;
+using Hagar.Configuration;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Hagar.Serializer
 {
@@ -23,7 +24,7 @@ namespace Hagar.Serializer
         private readonly IServiceProvider serviceProvider;
         private bool initialized;
 
-        public CodecProvider(IServiceProvider serviceProvider, IMetadata<CodecMetadata> codecMetadata)
+        public CodecProvider(IServiceProvider serviceProvider, IOptions<SerializerConfiguration> codecMetadata)
         {
             this.serviceProvider = serviceProvider;
             this.fieldCodecs[typeof(object)] = typeof(ObjectCodec);
@@ -46,7 +47,7 @@ namespace Hagar.Serializer
             }
         }
 
-        private void ConsumeMetadata(IMetadata<CodecMetadata> codecMetadata)
+        private void ConsumeMetadata(IOptions<SerializerConfiguration> codecMetadata)
         {
             var metadata = codecMetadata.Value;
             AddFromMetadata(this.partialSerializers, metadata.PartialSerializers, typeof(IPartialSerializer<>));
@@ -123,7 +124,7 @@ namespace Hagar.Serializer
 
                 if (untypedResult == null && (fieldType.IsInterface || fieldType.IsAbstract))
                 {
-                    untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(
+                    untypedResult = (IFieldCodec) ActivatorUtilities.GetServiceOrCreateInstance(
                         this.serviceProvider,
                         typeof(AbstractTypeSerializer<>).MakeGenericType(fieldType));
                 }
@@ -207,7 +208,7 @@ namespace Hagar.Serializer
         {
             if (!this.partialSerializers.TryGetValue(searchType, out var serializerType)) return null;
             if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
-            return (IPartialSerializer<TField>)ActivatorUtilities.CreateInstance(this.serviceProvider, serializerType);
+            return (IPartialSerializer<TField>)ActivatorUtilities.GetServiceOrCreateInstance(this.serviceProvider, serializerType);
         }
 
         private static void ThrowIfUnsupportedType(Type fieldType)
@@ -239,12 +240,12 @@ namespace Hagar.Serializer
             if (this.fieldCodecs.TryGetValue(searchType, out var codecType))
             {
                 if (codecType.IsGenericTypeDefinition) codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
-                untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(this.serviceProvider, codecType);
+                untypedResult = (IFieldCodec) ActivatorUtilities.GetServiceOrCreateInstance(this.serviceProvider, codecType);
             }
             else if (this.partialSerializers.TryGetValue(searchType, out var serializerType))
             {
                 if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(fieldType.GetGenericArguments());
-                var partialSerializer = ActivatorUtilities.CreateInstance(this.serviceProvider, serializerType);
+                var partialSerializer = ActivatorUtilities.GetServiceOrCreateInstance(this.serviceProvider, serializerType);
                 untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(
                     this.serviceProvider,
                     typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType),

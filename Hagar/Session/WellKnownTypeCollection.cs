@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Hagar.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Hagar.Session
 {
@@ -8,29 +10,9 @@ namespace Hagar.Session
         private readonly Dictionary<uint, Type> wellKnownTypes;
         private readonly Dictionary<Type, uint> wellKnownTypeToIdMap = new Dictionary<Type, uint>();
 
-        public WellKnownTypeCollection()
+        public WellKnownTypeCollection(IOptions<TypeConfiguration> typeConfiguration)
         {
-            this.wellKnownTypes = new Dictionary<uint, Type>
-            {
-                [0] = typeof(void), // Represents the type of null
-                [1] = typeof(int),
-                [2] = typeof(string),
-                [3] = typeof(bool),
-                [4] = typeof(short),
-                [5] = typeof(long),
-                [6] = typeof(sbyte),
-                [7] = typeof(uint),
-                [8] = typeof(ushort),
-                [9] = typeof(ulong),
-                [10] = typeof(byte),
-                [11] = typeof(float),
-                [12] = typeof(double),
-                [13] = typeof(decimal),
-                [14] = typeof(char),
-                [15] = typeof(Guid),
-                [16] = typeof(DateTime),
-                [17] = typeof(TimeSpan),
-            };
+            this.wellKnownTypes = typeConfiguration.Value.WellKnownTypes;
             foreach (var item in this.wellKnownTypes)
             {
                 this.wellKnownTypeToIdMap[item.Value] = item.Key;

@@ -9,22 +9,13 @@ using Hagar;
 using Hagar.Buffers;
 using Hagar.ISerializable;
 using Hagar.Json;
-using Hagar.Metadata;
+using Hagar.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NodaTime;
 
 namespace TestApp
 {
-    internal class HandCraftedProvider : IMetadataProvider<CodecMetadata>
-    {
-        public void PopulateMetadata(CodecMetadata metadata)
-        {
-            metadata.PartialSerializers.Add(typeof(SubTypeSerializer));
-            metadata.PartialSerializers.Add(typeof(BaseTypeSerializer));
-        }
-    }
-
     public class Program
     {
         public static void Main(string[] args)
@@ -32,14 +23,23 @@ namespace TestApp
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddCryoBuf();
             serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
-            serviceCollection.AddSingleton<IMetadataProvider<CodecMetadata>, HandCraftedProvider>();
+            serviceCollection.Configure<SerializerConfiguration>(
+                configuration =>
+                {
+                    configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
+                    configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                });
             serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             var codecProvider = serviceProvider.GetRequiredService<CodecProvider>();
             var serializer = codecProvider.GetCodec<SubType>();
+            SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSession>();
+
             var testString = "hello, hagar";
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -48,6 +48,7 @@ namespace TestApp
                     Int = 2,
                 });
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -58,6 +59,7 @@ namespace TestApp
 
             // Tests for duplicates
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -66,6 +68,7 @@ namespace TestApp
                     Int = 10
                 });
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -74,6 +77,7 @@ namespace TestApp
                     Int = 1
                 });
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -82,6 +86,7 @@ namespace TestApp
                     Int = 1
                 });
             TestSkip(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -90,6 +95,7 @@ namespace TestApp
                     Int = 1
                 });
             Test(
+                GetSession,
                 serializer,
                 new SubType
                 {
@@ -108,12 +114,13 @@ namespace TestApp
                 Int = 1
             };
             self.Ref = self;
-            Test(serializer, self);
+            Test(GetSession, serializer, self);
 
             self.Ref = Guid.NewGuid();
-            Test(serializer, self);
+            Test(GetSession, serializer, self);
 
             Test(
+                GetSession,
                 new AbstractTypeSerializer<object>(codecProvider),
                 new WhackyJsonType
                 {
@@ -128,12 +135,14 @@ namespace TestApp
                 Self = null,
             };
             Test(
+                GetSession,
                 new AbstractTypeSerializer<object>(codecProvider),
                 mySerializable
             );
 
             mySerializable.Self = mySerializable;
             Test(
+                GetSession,
                 new AbstractTypeSerializer<object>(codecProvider),
                 mySerializable
             );
@@ -148,11 +157,12 @@ namespace TestApp
             }
 
             Test(
+                GetSession,
                 new AbstractTypeSerializer<object>(codecProvider),
                 exception
             );
 
-            Test(new AbstractTypeSerializer<object>(codecProvider), new LocalDate());
+            Test(GetSession, new AbstractTypeSerializer<object>(codecProvider), new LocalDate());
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
@@ -191,9 +201,9 @@ namespace TestApp
 
         }
 
-        static void Test<T>(IFieldCodec<T> serializer, T expected)
+        static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
         {
-            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var session = getSession();
             var writer = new Writer();
 
             serializer.WriteField(writer, session, 0, typeof(T), expected);
@@ -201,7 +211,7 @@ namespace TestApp
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
             var reader = new Reader(writer.ToBytes());
-            var deserializationContext = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
             var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
@@ -232,15 +242,15 @@ namespace TestApp
             return references;
         }
 
-        static void TestSkip(IFieldCodec<SubType> serializer, SubType expected)
+        static void TestSkip(Func<SerializerSession> getSession, IFieldCodec<SubType> serializer, SubType expected)
         {
-            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var session = getSession();
             var writer = new Writer();
 
             serializer.WriteField(writer, session, 0, typeof(SubType), expected);
             
             var reader = new Reader(writer.ToBytes());
-            var deserializationContext = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();
             skipCodec.ReadValue(reader, deserializationContext, initialHeader);
