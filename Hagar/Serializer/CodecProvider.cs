@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Hagar.Codec;
 using Hagar.Configuration;
+using Hagar.Metadata;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-
 namespace Hagar.Serializer
 {
     public class CodecProvider : ITypedCodecProvider, IUntypedCodecProvider, IPartialSerializerProvider
@@ -24,14 +23,14 @@ namespace Hagar.Serializer
         private readonly IServiceProvider serviceProvider;
         private bool initialized;
 
-        public CodecProvider(IServiceProvider serviceProvider, IOptions<SerializerConfiguration> codecMetadata)
+        public CodecProvider(IServiceProvider serviceProvider, IConfiguration<SerializerConfiguration> codecConfiguration)
         {
             this.serviceProvider = serviceProvider;
             this.fieldCodecs[typeof(object)] = typeof(ObjectCodec);
             
             // ReSharper disable once PossibleMistakenCallToGetType.2
             this.fieldCodecs[typeof(Type).GetType()] = typeof(TypeSerializerCodec);
-            this.ConsumeMetadata(codecMetadata);
+            this.ConsumeMetadata(codecConfiguration);
         }
         
 
@@ -47,9 +46,9 @@ namespace Hagar.Serializer
             }
         }
 
-        private void ConsumeMetadata(IOptions<SerializerConfiguration> codecMetadata)
+        private void ConsumeMetadata(IConfiguration<SerializerConfiguration> codecConfiguration)
         {
-            var metadata = codecMetadata.Value;
+            var metadata = codecConfiguration.Value;
             AddFromMetadata(this.partialSerializers, metadata.PartialSerializers, typeof(IPartialSerializer<>));
             AddFromMetadata(this.fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
             

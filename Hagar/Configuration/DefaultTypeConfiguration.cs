@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Extensions.Options;
+using Hagar.Metadata;
 
 namespace Hagar.Configuration
 {
-    internal class DefaultTypeConfiguration : IConfigureOptions<TypeConfiguration>
+    internal class DefaultTypeConfiguration : IConfigurationProvider<TypeConfiguration>
     {
         public void Configure(TypeConfiguration options)
         {

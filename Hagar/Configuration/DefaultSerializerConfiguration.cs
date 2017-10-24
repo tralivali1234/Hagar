@@ -1,9 +1,9 @@
 ﻿using Hagar.Codec;
-using Microsoft.Extensions.Options;
+using Hagar.Metadata;
 
 namespace Hagar.Configuration
 {
-    internal class DefaultSerializerConfiguration : IConfigureOptions<SerializerConfiguration>
+    internal class DefaultSerializerConfiguration : IConfigurationProvider<SerializerConfiguration>
     {
         public void Configure(SerializerConfiguration configuration)
         {

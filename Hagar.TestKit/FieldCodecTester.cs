@@ -8,6 +8,7 @@ namespace Hagar.TestKit
 {
     public abstract class FieldCodecTester<TField, TCodec> where TCodec : IFieldCodec<TField>
     {
+        protected abstract SerializerSession CreateSession();
         protected abstract TCodec CreateCodec();
         protected abstract TField CreateValue();
 
@@ -15,7 +16,7 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var writer = new Writer();
-            var writerSession = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var writerSession = CreateSession();
             var writerCodec = this.CreateCodec();
             var beforeReference = writerSession.ReferencedObjects.CurrentReferenceId;
 
@@ -25,7 +26,7 @@ namespace Hagar.TestKit
             Assert.True(beforeReference < afterReference, "Writing a field should result in at least one reference being marked in the session.");
 
             var reader = new Reader(writer.ToBytes());
-            var readerSession = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
+            var readerSession = CreateSession();
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader(readerSession);
             beforeReference = readerSession.ReferencedObjects.CurrentReferenceId;

@@ -4,7 +4,6 @@ using System.Text;
 using Hagar.Codec;
 using Hagar.Serializer;
 using Hagar.Session;
-using Hagar.TypeSystem;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.ISerializable;
@@ -21,14 +20,12 @@ namespace TestApp
         public static void Main(string[] args)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddCryoBuf();
+            serviceCollection.AddCryoBuf(configuration =>
+            {
+                configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
+                configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));
+            });
             serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
-            serviceCollection.Configure<SerializerConfiguration>(
-                configuration =>
-                {
-                    configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
-                    configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));
-                });
             serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();

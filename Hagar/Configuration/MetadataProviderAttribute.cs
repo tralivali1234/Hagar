@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Extensions.Options;
+using Hagar.Metadata;
 
 namespace Hagar.Configuration
 {
@@ -8,18 +8,18 @@ namespace Hagar.Configuration
     /// Defines a metadata provider for this assembly.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public sealed class ConfigurationProviderAttribute : Attribute
+    public sealed class MetadataProviderAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConfigurationProviderAttribute"/> class.
+        /// Initializes a new instance of the <see cref="MetadataProviderAttribute"/> class.
         /// </summary>
         /// <param name="providerType">The metadata provider type.</param>
-        public ConfigurationProviderAttribute(Type providerType)
+        public MetadataProviderAttribute(Type providerType)
         {
             if (providerType == null) throw new ArgumentNullException(nameof(providerType));
-            if (!providerType.GetInterfaces().Any(iface => iface.IsConstructedGenericType && typeof(IConfigureOptions<>).IsAssignableFrom(iface.GetGenericTypeDefinition())))
+            if (!providerType.GetInterfaces().Any(iface => iface.IsConstructedGenericType && typeof(IConfigurationProvider<>).IsAssignableFrom(iface.GetGenericTypeDefinition())))
             {
-                throw new ArgumentException($"Provided type {providerType} must implement {typeof(IConfigureOptions<>)}", nameof(providerType));
+                throw new ArgumentException($"Provided type {providerType} must implement {typeof(IConfigurationProvider<>)}", nameof(providerType));
             }
 
             this.ProviderType = providerType;
