@@ -47,10 +47,5 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
         {
             return SyntaxFactory.IdentifierName(identifier.ToIdentifier());
         }
-
-        public static GenericNameSyntax ToGenericName(this string identifier)
-        {
-            return SyntaxFactory.GenericName(identifier.ToIdentifier());
-        }
     }
 }

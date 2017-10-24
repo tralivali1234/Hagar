@@ -1,4 +1,4 @@
-﻿namespace Hagar.Metadata
+﻿namespace Hagar.Configuration
 {
     /// <summary>
     /// Provides configuration of the specified type.

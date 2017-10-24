@@ -1,5 +1,4 @@
 using System;
-using Hagar.Metadata;
 
 namespace Hagar.Configuration
 {

@@ -83,13 +83,30 @@ namespace Hagar.CodeGenerator
             var members = new List<MemberDeclarationSyntax>();
             foreach (var type in serializableTypes)
             {
-                members.Add(
-                    NamespaceDeclaration(ParseName(type.Type.ContainingNamespace.Name ?? "HagarGeneratedCode"))
-                        .WithMembers(List(new MemberDeclarationSyntax[] {PartialSerializerGenerator.GenerateSerializer(this.compilation, type)}))
-                        .WithUsings(List(new[] {UsingDirective(ParseName("Hagar.Codec"))})));
+                // Generate a partial serializer class for each serializable type.
+                members.Add(PartialSerializerGenerator.GenerateSerializer(this.compilation, type));
             }
 
-            return CompilationUnit().WithAttributeLists(SingletonList(GetGeneratedCodeAttribute())).WithMembers(List(members));
+            var namespaceName = "HagarGeneratedCode." + this.compilation.AssemblyName;
+
+            // Generate metadata.
+            var metadataClass = MetadataGenerator.GenerateMetadata(this.compilation, serializableTypes);
+            members.Add(metadataClass);
+
+            var metadataAttribute = AttributeList()
+                .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)))
+                .WithAttributes(
+                    SingletonSeparatedList(
+                        Attribute(this.compilation.GetTypeByMetadataName("Hagar.Configuration.MetadataProviderAttribute").ToNameSyntax())
+                            .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{namespaceName}.{metadataClass.Identifier.Text}"))))));
+
+            return CompilationUnit()
+                .WithAttributeLists(List(new []{GetGeneratedCodeAttribute(), metadataAttribute}))
+                .WithMembers(
+                    SingletonList<MemberDeclarationSyntax>(
+                        NamespaceDeclaration(ParseName(namespaceName))
+                        .WithMembers(List(members))
+                        .WithUsings(List(new[] {UsingDirective(ParseName("Hagar.Codec"))}))));
         }
 
         private List<TypeDescription> GetSerializableTypes(CancellationToken cancellationToken)

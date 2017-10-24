@@ -2,12 +2,6 @@
 {
     internal static class Identifier
     {
-        public static string EscapeIdentifier(string identifier)
-        {
-            if (IsCSharpKeyword(identifier)) return "@" + identifier;
-            return identifier;
-        }
-
         internal static bool IsCSharpKeyword(string identifier)
         {
             switch (identifier)

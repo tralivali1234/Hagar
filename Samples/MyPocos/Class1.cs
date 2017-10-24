@@ -23,6 +23,11 @@ namespace MyPocos
         public int UnmarkedField;
 
         public int UnmarkedProperty { get; set; }
+
+        public override string ToString()
+        {
+            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
+        }
     }
 
     [GenerateSerializer]

@@ -13,6 +13,11 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return ParseTypeName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
+        public static NameSyntax ToNameSyntax(this ITypeSymbol typeSymbol)
+        {
+            return ParseName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        }
+
         public static string GetValidIdentifier(this ITypeSymbol type)
         {
             switch (type)

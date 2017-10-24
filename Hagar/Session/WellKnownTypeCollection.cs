@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Hagar.Configuration;
-using Hagar.Metadata;
 
 namespace Hagar.Session
 {

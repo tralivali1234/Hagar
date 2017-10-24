@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -75,7 +74,7 @@ namespace Hagar.CodeGenerator
 
     internal static class PartialSerializerGenerator
     {
-        private const string ClassPrefix = CodeGenerator.CodeGeneratorName;
+        private const string ClassPrefix = CodeGenerator.CodeGeneratorName + "_Partial";
         private const string BaseTypeSerializerFieldName = "baseTypeSerializer";
         private const string SerializeMethodName = "Serialize";
         private const string DeserializeMethodName = "Deserialize";
@@ -83,7 +82,7 @@ namespace Hagar.CodeGenerator
         public static ClassDeclarationSyntax GenerateSerializer(Compilation compilation, TypeDescription typeDescription)
         {
             var type = typeDescription.Type;
-            var simpleClassName = $"{ClassPrefix}_{type.Name}";
+            var simpleClassName = GetSimpleClassName(type);
 
             var libraryTypes = LibraryTypes.FromCompilation(compilation);
             var partialSerializerInterface = libraryTypes.PartialSerializer.Construct(type).ToTypeSyntax();
@@ -107,6 +106,11 @@ namespace Hagar.CodeGenerator
             }
 
             return classDeclaration;
+        }
+
+        public static string GetSimpleClassName(ISymbol type)
+        {
+            return $"{ClassPrefix}_{type.Name}";
         }
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, INamedTypeSymbol type)

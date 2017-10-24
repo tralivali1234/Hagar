@@ -5,7 +5,6 @@ using Hagar.Activator;
 using Hagar.Buffers;
 using Hagar.Codec;
 using Hagar.Configuration;
-using Hagar.Metadata;
 using Hagar.Serializer;
 using Hagar.Session;
 using Hagar.TypeSystem;

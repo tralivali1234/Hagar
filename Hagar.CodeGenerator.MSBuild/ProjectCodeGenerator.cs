@@ -58,8 +58,21 @@ namespace Hagar.CodeGenerator.MSBuild
         private static async Task<Compilation> LoadProject(string projectFilePath, CancellationToken cancellationToken)
         {
             var log = new StringBuilder();
-            var manager = new AnalyzerManager(log);
+            var manager = new AnalyzerManager();
             var analyzer = manager.GetProject(projectFilePath);
+
+            analyzer.GlobalProperties.TryGetValue("DefineConstants", out var defineConstants);
+            if (!string.IsNullOrWhiteSpace(defineConstants))
+            {
+                defineConstants += ";";
+            }
+            else
+            {
+                defineConstants = string.Empty;
+            }
+
+            analyzer.SetGlobalProperty("DefineConstants", defineConstants + "EXCLUDE_GENERATED_CODE");
+
             var workspace = analyzer.GetWorkspace();
             var project = workspace.CurrentSolution.Projects.Single();
             var result = await project.GetCompilationAsync(cancellationToken);

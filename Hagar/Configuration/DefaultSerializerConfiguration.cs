@@ -1,5 +1,4 @@
 ﻿using Hagar.Codec;
-using Hagar.Metadata;
 
 namespace Hagar.Configuration
 {

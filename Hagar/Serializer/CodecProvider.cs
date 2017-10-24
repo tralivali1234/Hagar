@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Hagar.Codec;
 using Hagar.Configuration;
-using Hagar.Metadata;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 namespace Hagar.Serializer
