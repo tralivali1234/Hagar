@@ -6,12 +6,11 @@ using Hagar.Session;
 
 namespace TestApp
 {
-    public class BaseTypeSerializer<TStringCodec> : IPartialSerializer<BaseType>
-        where TStringCodec : IFieldCodec<string>
+    public class BaseTypeSerializer : IPartialSerializer<BaseType>
     {
-        private readonly TStringCodec stringCodec;
+        private readonly IFieldCodec<string> stringCodec;
 
-        public BaseTypeSerializer(TStringCodec stringCodec)
+        public BaseTypeSerializer(IFieldCodec<string> stringCodec)
         {
             this.stringCodec = stringCodec;
         }

@@ -1,79 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
-using Hagar.Activator;
 using Hagar.Codec;
-using Hagar.Json;
 using Hagar.Serializer;
 using Hagar.Session;
-using Hagar.Utilities;
-using Hagar.ISerializable;
 using Hagar.TypeSystem;
 using Hagar;
 using Hagar.Buffers;
+using Hagar.ISerializable;
+using Hagar.Json;
+using Hagar.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NodaTime;
 
 namespace TestApp
 {
+    internal class HandCraftedProvider : IMetadataProvider<CodecMetadata>
+    {
+        public void PopulateMetadata(CodecMetadata metadata)
+        {
+            metadata.PartialSerializers.Add(typeof(SubTypeSerializer));
+            metadata.PartialSerializers.Add(typeof(BaseTypeSerializer));
+        }
+    }
+
     public class Program
     {
         public static void Main(string[] args)
         {
-            var codecs = new Dictionary<Type, IFieldCodec>
-            {
-                [typeof(bool)] = new BoolCodec(),
-                [typeof(char)] = new CharCodec(),
-                [typeof(byte)] = new ByteCodec(),
-                [typeof(sbyte)] = new SByteCodec(),
-                [typeof(ushort)] = new UInt16Codec(),
-                [typeof(short)] = new Int16Codec(),
-                [typeof(uint)] = new UInt32Codec(),
-                [typeof(int)] = new Int32Codec(),
-                [typeof(ulong)] = new UInt64Codec(),
-                [typeof(long)] = new Int64Codec(),
-                [typeof(Guid)] = new GuidCodec(),
-            };
-            var genericCodecs = new List<IMultiCodec>();
-            var codecProvider = new CodecProvider(codecs, genericCodecs);
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddCryoBuf();
+            serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
+            serviceCollection.AddSingleton<IMetadataProvider<CodecMetadata>, HandCraftedProvider>();
+            serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var typeSerializerCodec = new TypeSerializerCodec(codecProvider);
-            var typeCodec = CodecWrapper.CreateUntypedFromTyped<Type, TypeSerializerCodec>(typeSerializerCodec);
-            codecs[typeof(Type)] = typeCodec;
-            // ReSharper disable once PossibleMistakenCallToGetType.2
-            codecs[typeof(Type).GetType()] = typeCodec;
-
-            // TODO: construct using DI
-            var dotNetSerializableCodec = new DotNetSerializableCodec(
-                typeSerializerCodec,
-                new StringCodec(codecProvider),
-                new ObjectCodec(codecProvider),
-                new DefaultTypeFilter(),
-                codecProvider);
-            genericCodecs.Add(dotNetSerializableCodec);
-            genericCodecs.Add(new JsonCodec(codecProvider));
-
-            var stringCodec = new StringCodec(codecProvider);
-            codecs[typeof(string)] = stringCodec;
-            codecs[typeof(object)] = new ObjectCodec(codecProvider);
-
-            var intCodec = new Int32Codec();
-            var baseTypeSerializer = new BaseTypeSerializer<StringCodec>(stringCodec);
-            var activator = new DefaultActivator<SubType>();
-            var objectCodec = new ObjectCodec(codecProvider);
-
-            var partialSerializer = new SubTypeSerializer<BaseTypeSerializer<StringCodec>, StringCodec, Int32Codec>(
-                baseTypeSerializer,
-                stringCodec,
-                intCodec,
-                objectCodec);
-            var serializer =
-                new ConcreteTypeSerializer<SubType, DefaultActivator<SubType>, SubTypeSerializer<
-                    BaseTypeSerializer<StringCodec>, StringCodec, Int32Codec>>(
-                    activator,
-                    partialSerializer,
-                    codecProvider);
+            var codecProvider = serviceProvider.GetRequiredService<CodecProvider>();
+            var serializer = codecProvider.GetCodec<SubType>();
             var testString = "hello, hagar";
             Test(
                 serializer,
@@ -189,6 +153,7 @@ namespace TestApp
             );
 
             Test(new AbstractTypeSerializer<object>(codecProvider), new LocalDate());
+
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
         }
@@ -228,7 +193,7 @@ namespace TestApp
 
         static void Test<T>(IFieldCodec<T> serializer, T expected)
         {
-            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(),new ReferencedObjectCollection());
+            var session = new SerializerSession(new TypeCodec(), new WellKnownTypeCollection(), new ReferencedTypeCollection(), new ReferencedObjectCollection());
             var writer = new Writer();
 
             serializer.WriteField(writer, session, 0, typeof(T), expected);

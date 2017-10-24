@@ -20,7 +20,7 @@ namespace Hagar.Serializer
         object InnerCodec { get; }
     }
 
-    public interface IMultiCodec : IFieldCodec<object>
+    public interface IGeneralizedCodec : IFieldCodec<object>
     {
         bool IsSupportedType(Type type);
     }

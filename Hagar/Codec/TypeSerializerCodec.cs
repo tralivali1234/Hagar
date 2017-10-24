@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.ExceptionServices;
 using Hagar.Buffers;
 using Hagar.Serializer;
 using Hagar.Session;

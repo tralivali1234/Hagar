@@ -8,17 +8,14 @@ using Hagar.Utilities;
 
 namespace TestApp
 {
-    public class SubTypeSerializer<TBaseSerializer, TStringCodec, TIntCodec> : IPartialSerializer<SubType>
-        where TBaseSerializer : IPartialSerializer<BaseType>
-        where TStringCodec : IFieldCodec<string>
-        where TIntCodec : IFieldCodec<int>
+    public class SubTypeSerializer : IPartialSerializer<SubType>
     {
-        private readonly TBaseSerializer baseTypeSerializer;
-        private readonly TStringCodec stringCodec;
-        private readonly TIntCodec intCodec;
+        private readonly IPartialSerializer<BaseType> baseTypeSerializer;
+        private readonly IFieldCodec<string> stringCodec;
+        private readonly IFieldCodec<int> intCodec;
         private readonly IFieldCodec<object> objectCodec;
 
-        public SubTypeSerializer(TBaseSerializer baseTypeSerializer, TStringCodec stringCodec, TIntCodec intCodec, IFieldCodec<object> objectCodec)
+        public SubTypeSerializer(IPartialSerializer<BaseType> baseTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
         {
             this.baseTypeSerializer = baseTypeSerializer;
             this.stringCodec = stringCodec;

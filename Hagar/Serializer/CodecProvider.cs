@@ -2,26 +2,78 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Hagar.Codec;
+using Hagar.Metadata;
 using Hagar.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Hagar.Serializer
 {
-    public class CodecProvider : ITypedCodecProvider, IUntypedCodecProvider
+    public class CodecProvider : ITypedCodecProvider, IUntypedCodecProvider, IPartialSerializerProvider
     {
         private static readonly Type ObjectType = typeof(object);
         private static readonly Type OpenGenericCodecType = typeof(IFieldCodec<>);
         private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(CodecWrapper).GetMethod(nameof(CodecWrapper.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
 
-        private readonly CachedReadConcurrentDictionary<Type, IFieldCodec> adaptedCodecs = new CachedReadConcurrentDictionary<Type, IFieldCodec>();
-        private readonly Dictionary<Type, IFieldCodec> codecInstances;
-        private readonly List<IMultiCodec> multiCodecs;
+        private readonly object initializationLock = new object();
+        private readonly CachedReadConcurrentDictionary<(Type, Type), IFieldCodec> adaptedCodecs = new CachedReadConcurrentDictionary<(Type, Type), IFieldCodec>();
+        private readonly Dictionary<Type, Type> partialSerializers = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> fieldCodecs = new Dictionary<Type, Type>();
+        private readonly List<IGeneralizedCodec> generalized = new List<IGeneralizedCodec>();
         private readonly VoidCodec voidCodec = new VoidCodec();
+        private readonly IServiceProvider serviceProvider;
+        private bool initialized;
 
-#warning consider replacing with DI container.
-        public CodecProvider(Dictionary<Type, IFieldCodec> codecInstances, List<IMultiCodec> multiCodecs)
+        public CodecProvider(IServiceProvider serviceProvider, IMetadata<CodecMetadata> codecMetadata)
         {
-            this.codecInstances = codecInstances;
-            this.multiCodecs = multiCodecs;
+            this.serviceProvider = serviceProvider;
+            this.fieldCodecs[typeof(object)] = typeof(ObjectCodec);
+            
+            // ReSharper disable once PossibleMistakenCallToGetType.2
+            this.fieldCodecs[typeof(Type).GetType()] = typeof(TypeSerializerCodec);
+            this.ConsumeMetadata(codecMetadata);
+        }
+        
+
+        private void Initialize()
+        {
+            if (this.initialized) return;
+            lock (this.initializationLock)
+            {
+                if (this.initialized) return;
+
+                this.initialized = true;
+                this.generalized.AddRange(this.serviceProvider.GetServices<IGeneralizedCodec>());
+            }
+        }
+
+        private void ConsumeMetadata(IMetadata<CodecMetadata> codecMetadata)
+        {
+            var metadata = codecMetadata.Value;
+            AddFromMetadata(this.partialSerializers, metadata.PartialSerializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(this.fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
+            
+            void AddFromMetadata(Dictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
+            {
+                if (genericType.GetGenericArguments().Length != 1) throw new ArgumentException($"Type {genericType} must have an arity of 1.");
+
+                foreach (var fieldCodec in metadataCollection)
+                {
+                    if (fieldCodec.IsGenericType && fieldCodec.GetGenericArguments().Length != 1)
+                    {
+                        //TODO: throw / log
+                        continue;
+                    }
+
+                    foreach (var iface in fieldCodec.GetInterfaces())
+                    {
+                        if (!iface.IsGenericType) continue;
+                        if (genericType != iface.GetGenericTypeDefinition()) continue;
+                        var genericArgument = iface.GetGenericArguments()[0];
+                        if (typeof(object) == genericArgument) continue;
+                        resultCollection[genericArgument] = fieldCodec;
+                    }
+                }
+            }
         }
 
         public IFieldCodec<TField> TryGetCodec<TField>() => this.TryGetCodec<TField>(typeof(TField));
@@ -34,60 +86,82 @@ namespace Hagar.Serializer
 
         private IFieldCodec<TField> TryGetCodec<TField>(Type fieldType)
         {
+            if (!this.initialized) this.Initialize();
+            var resultFieldType = typeof(TField);
+            bool wasCreated = false;
+
             // Try to find the codec from the configured codecs.
             IFieldCodec untypedResult;
-            // TODO: Document why voidCodec is useful.
+
+            // If the field type is unavailable, return the void codec which can at least handle references.
+            // TODO: Is there a more appropriate codec, eg to consume fields?
             if (fieldType == null) untypedResult = this.voidCodec;
-            else if (!this.codecInstances.TryGetValue(fieldType, out untypedResult))
+            else if (!this.adaptedCodecs.TryGetValue((fieldType, resultFieldType), out untypedResult))
             {
-                foreach (var dynamicCodec in this.multiCodecs)
+                ThrowIfUnsupportedType(fieldType);
+
+                if (fieldType.IsConstructedGenericType)
                 {
-                    if (dynamicCodec.IsSupportedType(fieldType))
+                    untypedResult = this.CreateCodecInstance(fieldType, fieldType.GetGenericTypeDefinition());
+                }
+                else
+                {
+                    untypedResult = this.CreateCodecInstance(fieldType, fieldType);
+                    if (untypedResult == null)
                     {
-                        untypedResult = dynamicCodec;
-                        break;
+                        if (!this.initialized) this.Initialize();
+                        foreach (var dynamicCodec in this.generalized)
+                        {
+                            if (dynamicCodec.IsSupportedType(fieldType))
+                            {
+                                untypedResult = dynamicCodec;
+                                break;
+                            }
+                        }
                     }
                 }
+
+                if (untypedResult == null && (fieldType.IsInterface || fieldType.IsAbstract))
+                {
+                    untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(
+                        this.serviceProvider,
+                        typeof(AbstractTypeSerializer<>).MakeGenericType(fieldType));
+                }
+
+                wasCreated = untypedResult != null;
             }
 
-            // Check if the result fits a strongly-typed codec signature.
+            // Attempt to adapt the codec if it's not already adapted.
+            IFieldCodec<TField> typedResult;
+            var wasAdapted = false;
             switch (untypedResult)
             {
                 case null:
                     return null;
                 case IFieldCodec<TField> typedCodec:
-                    return typedCodec;
+                    typedResult = typedCodec;
+                    break;
                 case IWrappedCodec wrapped when wrapped.InnerCodec is IFieldCodec<TField> typedCodec:
-                    return typedCodec;
-            }
-
-            // Check if a codec has already been adapted to the target type.
-            if (this.adaptedCodecs.TryGetValue(fieldType, out var previouslyAdapted))
-            {
-                untypedResult = previouslyAdapted;
-            }
-
-            // Attempt to adapt the codec if it's not already adapted.
-            IFieldCodec<TField> typedResult;
-            switch (untypedResult)
-            {
-                case IFieldCodec<TField> typedCodec:
-                    return typedCodec;
+                    typedResult = typedCodec;
+                    wasAdapted = true;
+                    break;
                 case IFieldCodec<object> objectCodec:
                     typedResult = CodecWrapper.CreatedTypedFromUntyped<TField>(objectCodec);
+                    wasAdapted = true;
                     break;
                 default:
                     typedResult = TryWrapCodec(untypedResult);
+                    wasAdapted = true;
                     break;
             }
 
             // Store the results or throw if adaptation failed.
-            if (typedResult != null)
+            if (typedResult != null && (wasCreated || wasAdapted))
             {
                 untypedResult = typedResult;
-                typedResult = (IFieldCodec<TField>) this.adaptedCodecs.GetOrAdd(fieldType, _ => untypedResult);
+                typedResult = (IFieldCodec<TField>) this.adaptedCodecs.GetOrAdd((fieldType, resultFieldType), _ => untypedResult);
             }
-            else
+            else if (typedResult == null)
             {
                 ThrowCannotConvert(untypedResult);
             }
@@ -118,8 +192,95 @@ namespace Hagar.Serializer
                 throw new InvalidOperationException($"Cannot convert codec of type {rawCodec.GetType()} to codec of type {typeof(IFieldCodec<TField>)}.");
             }
         }
+        
+        public IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class
+        {
+            if (!this.initialized) this.Initialize();
+            ThrowIfUnsupportedType(typeof(TField));
+            var type = typeof(TField);
+            var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+
+            return this.GetPartialSerializerInner<TField>(type, searchType);
+        }
+
+        private IPartialSerializer<TField> GetPartialSerializerInner<TField>(Type concreteType, Type searchType) where TField : class
+        {
+            if (!this.partialSerializers.TryGetValue(searchType, out var serializerType)) return null;
+            if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
+            return (IPartialSerializer<TField>)ActivatorUtilities.CreateInstance(this.serviceProvider, serializerType);
+        }
+
+        private static void ThrowIfUnsupportedType(Type fieldType)
+        {
+            if (fieldType.IsArray)
+            {
+                ThrowArrayType(fieldType);
+            }
+
+            if (fieldType.IsGenericTypeDefinition)
+            {
+                ThrowGenericTypeDefinition(fieldType);
+            }
+
+            if (fieldType.IsPointer)
+            {
+                ThrowPointerType(fieldType);
+            }
+
+            if (fieldType.IsByRef)
+            {
+                ThrowByRefType(fieldType);
+            }
+        }
+
+        private IFieldCodec CreateCodecInstance(Type fieldType, Type searchType)
+        {
+            IFieldCodec untypedResult = null;
+            if (this.fieldCodecs.TryGetValue(searchType, out var codecType))
+            {
+                if (codecType.IsGenericTypeDefinition) codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
+                untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(this.serviceProvider, codecType);
+            }
+            else if (this.partialSerializers.TryGetValue(searchType, out var serializerType))
+            {
+                if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(fieldType.GetGenericArguments());
+                var partialSerializer = ActivatorUtilities.CreateInstance(this.serviceProvider, serializerType);
+                untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(
+                    this.serviceProvider,
+                    typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType),
+                    partialSerializer);
+            }
+
+            return untypedResult;
+        }
+
+        private static void ThrowPointerType(Type fieldType)
+        {
+            throw new NotSupportedException($"Type {fieldType} is a pointer type and is therefore not supported.");
+        }
+
+        private static void ThrowByRefType(Type fieldType)
+        {
+            throw new NotSupportedException($"Type {fieldType} is a by-ref type and is therefore not supported.");
+        }
+
+        private static void ThrowArrayType(Type fieldType)
+        {
+#warning implement array codec.
+            throw new NotImplementedException($"Type {fieldType} is an array type, but the array codec is not implemented yet");
+        }
+
+        private static void ThrowGenericTypeDefinition(Type fieldType)
+        {
+            throw new InvalidOperationException($"Type {fieldType} is a non-constructed generic type and is therefore unsupported.");
+        }
 
         // TODO: Use a library-specific exception.
         private static IFieldCodec<TField> ThrowCodecNotFound<TField>(Type fieldType) => throw new KeyNotFoundException($"Could not find a codec for type {fieldType}.");
+    }
+
+    public interface IPartialSerializerProvider
+    {
+        IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class;
     }
 }

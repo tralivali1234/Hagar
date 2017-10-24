@@ -12,13 +12,13 @@ using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
 {
-    public class DotNetSerializableCodec : IMultiCodec
+    public class DotNetSerializableCodec : IGeneralizedCodec
     {
 #warning implement support for callbacks
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> typeCodec;
         private readonly ITypeFilter typeFilter;
-        private readonly IUntypedCodecProvider codecProvider;
+        private readonly IUntypedCodecProvider untypedCodecProvider;
         private readonly SerializationConstructorFactory constructorFactory = new SerializationConstructorFactory();
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
 
@@ -38,11 +38,11 @@ namespace Hagar.ISerializable
             IFieldCodec<string> stringCodec,
             IFieldCodec<object> objectCodec,
             ITypeFilter typeFilter,
-            IUntypedCodecProvider codecProvider)
+            IUntypedCodecProvider untypedCodecProvider)
         {
             this.typeCodec = typeCodec;
             this.typeFilter = typeFilter;
-            this.codecProvider = codecProvider;
+            this.untypedCodecProvider = untypedCodecProvider;
             this.entrySerializer = new SerializationEntryCodec(stringCodec, objectCodec);
             this.createConstructorDelegate = this.constructorFactory.GetSerializationConstructorInvoker;
         }
@@ -69,7 +69,7 @@ namespace Hagar.ISerializable
 
         public object ReadValue(Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(reader, session, field, this.codecProvider, null);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(reader, session, field, this.untypedCodecProvider, null);
             object result = null;
             SerializationInfo info = null;
             uint fieldId = 0;
