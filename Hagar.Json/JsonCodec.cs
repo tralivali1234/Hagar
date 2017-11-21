@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 using Hagar.Buffers;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Session;
-using Hagar.Serializer;
+using Hagar.Serializers;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 using Newtonsoft.Json;
@@ -21,7 +21,10 @@ namespace Hagar.Json
         {
         }
 
-        public JsonCodec(IUntypedCodecProvider codecProvider, JsonSerializerSettings settings = null, Func<Type, bool> isSupportedFunc = null)
+        public JsonCodec(
+            IUntypedCodecProvider codecProvider,
+            JsonSerializerSettings settings = null,
+            Func<Type, bool> isSupportedFunc = null)
         {
             this.codecProvider = codecProvider;
             this.settings = settings ?? new JsonSerializerSettings
@@ -69,6 +72,5 @@ namespace Hagar.Json
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for JSON fields. {field}");
-    
     }
 }

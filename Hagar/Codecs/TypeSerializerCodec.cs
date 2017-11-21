@@ -1,11 +1,11 @@
 using System;
 using Hagar.Buffers;
-using Hagar.Serializer;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 
-namespace Hagar.Codec
+namespace Hagar.Codecs
 {
     public class TypeSerializerCodec : IFieldCodec<Type>
     {

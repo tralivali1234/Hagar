@@ -1,5 +1,4 @@
 ﻿using System;
-using Hagar.Codec;
 using Hagar.TestKit;
 using Xunit;
 

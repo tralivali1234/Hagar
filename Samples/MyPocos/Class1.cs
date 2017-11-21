@@ -51,7 +51,8 @@ namespace MyPocos
     }
 
     [GenerateSerializer]
-    public class GenericPocoWithConstraint<TClass, TStruct> : GenericPoco<TStruct> where TClass : List<int>, new() where TStruct : struct
+    public class GenericPocoWithConstraint<TClass, TStruct>
+        : GenericPoco<TStruct> where TClass : List<int>, new() where TStruct : struct
     {
         [FieldId(0)]
         public new TClass Field { get; set; }

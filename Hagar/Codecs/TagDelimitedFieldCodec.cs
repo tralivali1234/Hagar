@@ -2,10 +2,9 @@ using System;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
-namespace Hagar.Codec
+namespace Hagar.Codecs
 {
     public static class TagDelimitedFieldCodec
     {

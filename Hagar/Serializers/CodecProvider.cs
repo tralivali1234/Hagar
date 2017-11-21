@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-namespace Hagar.Serializer
+namespace Hagar.Serializers
 {
     public class CodecProvider : ITypedCodecProvider, IUntypedCodecProvider, IPartialSerializerProvider
     {

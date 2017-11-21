@@ -15,8 +15,8 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes
             {
-                PartialSerializer = compilation.GetTypeByMetadataName("Hagar.Serializer.IPartialSerializer`1"),
-                FieldCodec = compilation.GetTypeByMetadataName("Hagar.Codec.IFieldCodec`1"),
+                PartialSerializer = compilation.GetTypeByMetadataName("Hagar.Serializers.IPartialSerializer`1"),
+                FieldCodec = compilation.GetTypeByMetadataName("Hagar.Codecs.IFieldCodec`1"),
                 Writer = compilation.GetTypeByMetadataName("Hagar.Buffers.Writer"),
                 Reader = compilation.GetTypeByMetadataName("Hagar.Buffers.Reader"),
                 SerializerSession = compilation.GetTypeByMetadataName("Hagar.Session.SerializerSession"),
@@ -191,14 +191,14 @@ namespace Hagar.CodeGenerator
             var type = typeDescription.Type;
             var fields = new List<SerializerFieldDescription>();
 
-            fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type, libraryTypes)).Distinct().Select(GetTypeDescription));
+            fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetTypeDescription));
 
             if (HasComplexBaseType(type))
             {
                 fields.Add(new SerializerFieldDescription(libraryTypes.PartialSerializer.Construct(type.BaseType), BaseTypeSerializerFieldName));
             }
 
-            fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type, libraryTypes)).Distinct().Select(GetCodecDescription));
+            fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetCodecDescription));
             return fields;
 
             CodecFieldDescription GetCodecDescription(ITypeSymbol t)
@@ -221,9 +221,8 @@ namespace Hagar.CodeGenerator
         /// Returns the "expected" type for <paramref name="type"/> which is used for selecting the correct codec.
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="libraryTypes"></param>
         /// <returns></returns>
-        private static ITypeSymbol GetExpectedType(ITypeSymbol type, LibraryTypes libraryTypes)
+        private static ITypeSymbol GetExpectedType(ITypeSymbol type)
         {
             if (type is IArrayTypeSymbol)
                 return type;
@@ -263,8 +262,8 @@ namespace Hagar.CodeGenerator
                 var fieldIdDelta = member.FieldId - previousFieldId;
                 previousFieldId = member.FieldId;
 
-                var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type, libraryTypes)));
-                var expectedType = fieldDescriptions.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type, libraryTypes)));
+                var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
+                var expectedType = fieldDescriptions.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
@@ -368,7 +367,7 @@ namespace Hagar.CodeGenerator
                     var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(member.FieldId)));
 
                     // C#: instance.<member> = this.<codec>.ReadValue(reader, session, header);
-                    var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type, libraryTypes)));
+                    var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
                     ExpressionSyntax readValueExpression = InvocationExpression(
                         ThisExpression().Member(codec.FieldName).Member("ReadValue"),
                         ArgumentList(SeparatedList(new[] {Argument(readerParam), Argument(sessionParam), Argument(headerVar)})));

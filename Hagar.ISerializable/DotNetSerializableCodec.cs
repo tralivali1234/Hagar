@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Hagar.Buffers;
-using Hagar.Codec;
-using Hagar.Serializer;
+using Hagar.Codecs;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 

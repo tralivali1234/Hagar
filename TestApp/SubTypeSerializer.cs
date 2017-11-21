@@ -1,8 +1,8 @@
 ﻿using System;
 using Hagar;
 using Hagar.Buffers;
-using Hagar.Codec;
-using Hagar.Serializer;
+using Hagar.Codecs;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.Utilities;
 

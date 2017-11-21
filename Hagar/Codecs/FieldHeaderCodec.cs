@@ -4,7 +4,7 @@ using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 
-namespace Hagar.Codec
+namespace Hagar.Codecs
 {
     /// <summary>
     /// Codec for operating with the wire format.

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Hagar.Activator;
 using Hagar.Buffers;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
-namespace Hagar.Serializer
+namespace Hagar.Serializers
 {
     /// <summary>
     /// Serializer for reference types which can be instantiated.

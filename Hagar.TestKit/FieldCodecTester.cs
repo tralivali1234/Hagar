@@ -1,5 +1,5 @@
 ﻿using Hagar.Buffers;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Session;
 using Hagar.TypeSystem;
 using Xunit;

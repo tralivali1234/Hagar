@@ -24,7 +24,11 @@ namespace HelloHagar
 
             var writeSession = serviceProvider.GetRequiredService<SerializerSession>();
             var writer = new Writer();
-            codec.WriteField(writer, writeSession, 0, null, new SomeClassWithSerialzers {IntField = 2, IntProperty = 30});
+            codec.WriteField(writer,
+                writeSession,
+                0,
+                null,
+                new SomeClassWithSerialzers {IntField = 2, IntProperty = 30});
 
             var reader = new Reader(writer.ToBytes());
             var readerSession = serviceProvider.GetRequiredService<SerializerSession>();

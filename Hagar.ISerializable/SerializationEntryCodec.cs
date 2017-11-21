@@ -1,6 +1,6 @@
 ﻿using System;
 using Hagar.Buffers;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;

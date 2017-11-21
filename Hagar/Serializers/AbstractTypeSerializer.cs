@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Hagar.Buffers;
-using Hagar.Codec;
+using Hagar.Codecs;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
-namespace Hagar.Serializer
+namespace Hagar.Serializers
 {
     /// <summary>
     /// Serializer for types which are abstract and therefore cannot be instantiated themselves, such as abstract classes and interface types.

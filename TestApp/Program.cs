@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using System.Text;
-using Hagar.Codec;
-using Hagar.Serializer;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar;
 using Hagar.Buffers;
+using Hagar.Codecs;
 using Hagar.ISerializable;
 using Hagar.Json;
 using Hagar.Configuration;
@@ -20,7 +20,7 @@ namespace TestApp
         public static void Main(string[] args)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddCryoBuf(configuration =>
+            serviceCollection.AddHagar(configuration =>
             {
                 configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
                 configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));

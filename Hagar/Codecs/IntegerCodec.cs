@@ -4,7 +4,7 @@ using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 
-namespace Hagar.Codec
+namespace Hagar.Codecs
 {
     public class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
     {

@@ -1,7 +1,7 @@
 using System;
-using Hagar.Codec;
+using Hagar.Codecs;
 
-namespace Hagar.Serializer
+namespace Hagar.Serializers
 {
     public interface IUntypedCodecProvider
     {

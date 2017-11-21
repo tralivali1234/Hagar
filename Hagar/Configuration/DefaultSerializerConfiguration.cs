@@ -1,4 +1,4 @@
-﻿using Hagar.Codec;
+﻿using Hagar.Codecs;
 
 namespace Hagar.Configuration
 {

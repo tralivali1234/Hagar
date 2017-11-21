@@ -2,7 +2,7 @@
 using Hagar.Buffers;
 using Hagar.Session;
 
-namespace Hagar.Serializer
+namespace Hagar.Serializers
 {
     /// <summary>
     /// Serializer the content of a specified type without framing the type itself.

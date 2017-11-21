@@ -1,10 +1,10 @@
 using System;
 using Hagar.Buffers;
-using Hagar.Serializer;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
-namespace Hagar.Codec
+namespace Hagar.Codecs
 {
     public static class CodecWrapper
     {

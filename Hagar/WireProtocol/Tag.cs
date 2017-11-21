@@ -8,7 +8,7 @@ namespace Hagar.WireProtocol
         public const byte FieldIdMask = 0b000_0111; // The final 3 bits are used for the field id delta, if the delta is expected.
         public const byte FieldIdCompleteMask = 0b0000_0111;
         public const byte ExtendedWireTypeMask = 0b0001_1000;
-
+        
         private byte tag;
 
         public Tag(byte tag)
