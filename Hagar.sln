@@ -1,27 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar", "Hagar\Hagar.csproj", "{5C577472-EBC7-4472-A339-639A38A0531C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2A14EA5B-AB5E-4486-A746-B834A1C0F290}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.ISerializable", "Hagar.ISerializable\Hagar.ISerializable.csproj", "{0F7397CF-9C94-4DF2-B38B-4560B6200630}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{9CA57753-5824-4D32-825A-F9D0C6CABFBA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Json", "Hagar.Json\Hagar.Json.csproj", "{68BD5567-9F00-43A2-BC9D-913C18764280}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar", "src\Hagar\Hagar.csproj", "{5C577472-EBC7-4472-A339-639A38A0531C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.UnitTests", "Hagar.UnitTests\Hagar.UnitTests.csproj", "{38C83221-53FD-470C-AF27-73325529745C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.ISerializable", "src\Hagar.ISerializable\Hagar.ISerializable.csproj", "{0F7397CF-9C94-4DF2-B38B-4560B6200630}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.TestKit", "Hagar.TestKit\Hagar.TestKit.csproj", "{153D1F59-DEBF-4214-B4CA-9540CAB6B1A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Json", "src\Hagar.Json\Hagar.Json.csproj", "{68BD5567-9F00-43A2-BC9D-913C18764280}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{7E93FD5A-7EB8-4EF3-B23A-DB2CDC9C260B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.UnitTests", "test\Hagar.UnitTests\Hagar.UnitTests.csproj", "{38C83221-53FD-470C-AF27-73325529745C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator", "Hagar.CodeGenerator\Hagar.CodeGenerator.csproj", "{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.TestKit", "src\Hagar.TestKit\Hagar.TestKit.csproj", "{153D1F59-DEBF-4214-B4CA-9540CAB6B1A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Abstractions", "Hagar.Abstractions\Hagar.Abstractions.csproj", "{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "test\TestApp\TestApp.csproj", "{7E93FD5A-7EB8-4EF3-B23A-DB2CDC9C260B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild", "Hagar.CodeGenerator.MSBuild\Hagar.CodeGenerator.MSBuild.csproj", "{E027C482-0B30-4875-8929-CA0B7831C786}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator", "src\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj", "{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hagar.ObjectModel", "Hagar.ObjectModel\Hagar.ObjectModel.fsproj", "{1FCCA413-929B-447A-839D-E69510E9C1E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Abstractions", "src\Hagar.Abstractions\Hagar.Abstractions.csproj", "{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild", "src\Hagar.CodeGenerator.MSBuild\Hagar.CodeGenerator.MSBuild.csproj", "{E027C482-0B30-4875-8929-CA0B7831C786}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hagar.ObjectModel", "src\Hagar.ObjectModel\Hagar.ObjectModel.fsproj", "{1FCCA413-929B-447A-839D-E69510E9C1E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +76,18 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5C577472-EBC7-4472-A339-639A38A0531C} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{0F7397CF-9C94-4DF2-B38B-4560B6200630} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{68BD5567-9F00-43A2-BC9D-913C18764280} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{38C83221-53FD-470C-AF27-73325529745C} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
+		{153D1F59-DEBF-4214-B4CA-9540CAB6B1A0} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{7E93FD5A-7EB8-4EF3-B23A-DB2CDC9C260B} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
+		{8D7C998B-6B7C-48A5-A83C-7650959F2DDA} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{E027C482-0B30-4875-8929-CA0B7831C786} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{1FCCA413-929B-447A-839D-E69510E9C1E5} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8125413B-1B31-40F0-BA6B-BFD0C6925F6C}

@@ -1,0 +1,17 @@
+<Project Condition=" '$(HagarCodeGen)' == 'true' ">
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/Hagar.CodeGenerator.MSBuild.csproj" Condition=" '$(HagarCodeGen)' == 'true' ">
+      <Project>{8D7C998B-6B7C-48A5-A83C-7650959F2DDA}</Project>
+      <Name>Hagar.CodeGenerator.MSBuild</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <!-- Workaround. See: https://github.com/dotnet/sdk/issues/939#issuecomment-284641613 -->
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <UndefineProperties>TargetFramework</UndefineProperties>
+      <!-- /Workaround -->
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <HagarCodeGeneratorAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/bin/$(Configuration)netcoreapp2.0/Hagar.CodeGenerator.MSBuild.dll</HagarCodeGeneratorAssembly>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/build/Hagar.HagarCodeGenerator.MSBuild.targets" Condition=" '$(HagarCodeGen)' == 'true' " />
+</Project>
