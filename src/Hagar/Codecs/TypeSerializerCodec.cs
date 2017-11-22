@@ -7,7 +7,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class TypeSerializerCodec : IFieldCodec<Type>
+    internal class TypeSerializerCodec : IFieldCodec<Type>
     {
         private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SchemaTypeType = typeof(SchemaType);

@@ -6,13 +6,22 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public static class CodecWrapper
+    /// <summary>
+    /// Methods for adapting typed and untyped codecs
+    /// </summary>
+    internal static class CodecAdapter
     {
+        /// <summary>
+        /// Converts a strongly-typed codec into an untyped codec.
+        /// </summary>
         public static IFieldCodec<object> CreateUntypedFromTyped<TField, TCodec>(TCodec typedCodec) where TCodec : IFieldCodec<TField>
         {
             return new TypedCodecWrapper<TField, TCodec>(typedCodec);
         }
 
+        /// <summary>
+        /// Converts an untyped codec into a strongly-typed codec.
+        /// </summary>
         public static IFieldCodec<TField> CreatedTypedFromUntyped<TField>(IFieldCodec<object> untypedCodec)
         {
             return new UntypedCodecWrapper<TField>(untypedCodec);

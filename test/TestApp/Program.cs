@@ -48,6 +48,7 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
+            TestOne();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHagar(configuration =>
             {

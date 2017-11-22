@@ -41,7 +41,11 @@ namespace Hagar
                 // Session
                 services.AddTransient<ReferencedTypeCollection>();
                 services.AddTransient<ReferencedObjectCollection>();
-                services.AddTransient<SerializerSession>();
+                services.AddSingleton<SessionPool>();
+
+                // Serializer
+                services.AddSingleton(typeof(Serializer<>));
+                services.AddSingleton(typeof(Serializer));
             }
 
             if (configure != null)

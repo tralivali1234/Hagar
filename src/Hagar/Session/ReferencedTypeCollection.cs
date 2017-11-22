@@ -11,5 +11,11 @@ namespace Hagar.Session
         public Type GetReferencedType(uint reference) => this.referencedTypes[reference];
         public bool TryGetReferencedType(uint reference, out Type type) => this.referencedTypes.TryGetValue(reference, out type);
         public bool TryGetTypeReference(Type type, out uint reference) => this.referencedTypeToIdMap.TryGetValue(type, out reference);
+
+        public void Reset()
+        {
+            this.referencedTypes.Clear();
+            this.referencedTypeToIdMap.Clear();
+        }
     }
 }

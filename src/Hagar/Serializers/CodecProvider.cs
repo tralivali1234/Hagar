@@ -11,7 +11,7 @@ namespace Hagar.Serializers
     {
         private static readonly Type ObjectType = typeof(object);
         private static readonly Type OpenGenericCodecType = typeof(IFieldCodec<>);
-        private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(CodecWrapper).GetMethod(nameof(CodecWrapper.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
+        private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(CodecAdapter).GetMethod(nameof(CodecAdapter.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
 
         private readonly object initializationLock = new object();
         private readonly CachedReadConcurrentDictionary<(Type, Type), IFieldCodec> adaptedCodecs = new CachedReadConcurrentDictionary<(Type, Type), IFieldCodec>();
@@ -145,7 +145,7 @@ namespace Hagar.Serializers
                     wasAdapted = true;
                     break;
                 case IFieldCodec<object> objectCodec:
-                    typedResult = CodecWrapper.CreatedTypedFromUntyped<TField>(objectCodec);
+                    typedResult = CodecAdapter.CreatedTypedFromUntyped<TField>(objectCodec);
                     wasAdapted = true;
                     break;
                 default:

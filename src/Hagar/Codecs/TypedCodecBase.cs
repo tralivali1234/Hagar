@@ -5,7 +5,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class TypedCodecBase<TField, TCodec> : IFieldCodec<object> where TCodec : class, IFieldCodec<TField>
+    internal class TypedCodecBase<TField, TCodec> : IFieldCodec<object> where TCodec : class, IFieldCodec<TField>
     {
         private readonly TCodec codec;
 

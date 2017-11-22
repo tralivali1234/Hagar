@@ -104,7 +104,7 @@ namespace Hagar.CodeGenerator
                     SingletonList<MemberDeclarationSyntax>(
                         NamespaceDeclaration(ParseName(namespaceName))
                         .WithMembers(List(members))
-                        .WithUsings(List(new[] {UsingDirective(ParseName("Hagar.Codec"))}))));
+                        .WithUsings(List(new[] {UsingDirective(ParseName("Hagar.Codecs"))}))));
         }
 
         private List<TypeDescription> GetSerializableTypes(CancellationToken cancellationToken)
