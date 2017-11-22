@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Hagar.CodeGenerator.MSBuild
@@ -7,6 +8,7 @@ namespace Hagar.CodeGenerator.MSBuild
     {
         public static int Main(string[] args)
         {
+            while (!Debugger.IsAttached) Thread.Sleep(1000);
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: <ProjectFile> <OutputFile>");

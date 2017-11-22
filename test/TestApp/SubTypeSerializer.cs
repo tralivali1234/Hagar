@@ -1,10 +1,7 @@
-﻿using System;
-using Hagar;
-using Hagar.Buffers;
+﻿using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.Session;
-using Hagar.Utilities;
 
 namespace TestApp
 {

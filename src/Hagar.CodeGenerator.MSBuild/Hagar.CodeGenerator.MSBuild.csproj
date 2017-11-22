@@ -13,8 +13,9 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <DevelopmentDependency>true</DevelopmentDependency>
-    <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
+    <PublishRoot>bin\publish\$(Configuration)\</PublishRoot>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
   
   <ItemGroup>
@@ -48,6 +49,8 @@
   
   <ItemGroup>
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
+    <PackageReference Update="Buildalyzer" Version="0.2.1" />
+    <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
   </ItemGroup>
 
 
@@ -63,7 +66,7 @@
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
    -->
     <ItemGroup>
-      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*" />
+      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
       <_PackageFiles Include="@(PublishedFiles)">

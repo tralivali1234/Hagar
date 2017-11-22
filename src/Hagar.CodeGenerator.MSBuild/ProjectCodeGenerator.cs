@@ -39,6 +39,10 @@ namespace Hagar.CodeGenerator.MSBuild
             {
                 var compilation = await LoadProject(this.ProjectFile, cancellationToken);
 
+
+#warning add warning: doesn't reference main assembly
+                if (compilation.ReferencedAssemblyNames.All(name => name.Name != "Hagar")) return false;
+
                 var generator = new CodeGenerator(compilation);
                 var syntax = generator.GenerateCode(cancellationToken).NormalizeWhitespace();
                 var source = syntax.ToFullString();

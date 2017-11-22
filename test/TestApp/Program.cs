@@ -10,6 +10,7 @@ using Hagar.ISerializable;
 using Hagar.Json;
 using Hagar.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MyPocos;
 using Newtonsoft.Json;
 using NodaTime;
 
@@ -17,6 +18,34 @@ namespace TestApp
 {
     public class Program
     {
+
+        public static void TestOne()
+        {
+            Console.WriteLine("Hello World!");
+            var serviceProvider = new ServiceCollection()
+                .AddHagar()
+                .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
+                .BuildServiceProvider();
+            var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
+
+            var codec = codecs.GetCodec<SomeClassWithSerialzers>();
+
+            var writeSession = serviceProvider.GetRequiredService<SerializerSession>();
+            var writer = new Writer();
+            codec.WriteField(writer,
+                             writeSession,
+                             0,
+                             null,
+                             new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
+
+            var reader = new Reader(writer.ToBytes());
+            var readerSession = serviceProvider.GetRequiredService<SerializerSession>();
+            var initialHeader = reader.ReadFieldHeader(readerSession);
+            var result = codec.ReadValue(reader, readerSession, initialHeader);
+            Console.WriteLine(result);
+            Console.ReadKey();
+        }
+
         public static void Main(string[] args)
         {
             var serviceCollection = new ServiceCollection();
