@@ -1,13 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
 
   <PropertyGroup>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
-    <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>
     <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
     <NoPackageAnalysis>true</NoPackageAnalysis>
-    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
-    <AssemblyName>Hagar.CodeGenerator.MSBuild</AssemblyName>
+    <AssemblyName>Hagar.CodeGenerator.MSBuild.Bootstrap</AssemblyName>
     <RootNamespace>Hagar.CodeGenerator.MSBuild</RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PreserveCompilationContext>true</PreserveCompilationContext>
@@ -16,22 +15,16 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <PublishRoot>bin\publish\$(Configuration)\</PublishRoot>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
+    <SourceDir>$(MSBuildThisFileDirectory)..\Hagar.CodeGenerator.MSBuild\</SourceDir>
+    <HagarCodeGen>false</HagarCodeGen>
   </PropertyGroup>
   
   <ItemGroup>
-    <Content Include="build\Hagar.CodeGenerator.MSBuild.targets">
-      <Pack>true</Pack>
-      <PackagePath>%(Identity)</PackagePath>
-      <Visible>true</Visible>
-    </Content>
-    <Content Include="buildMultiTargeting\Hagar.CodeGenerator.MSBuild.targets">
-      <Pack>true</Pack>
-      <PackagePath>%(Identity)</PackagePath>
-      <Visible>true</Visible>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
+    <Compile Include="$(SourceDir)**/*.cs" Exclude="$(SourceDir)obj/**/*.cs;$(SourceDir)bin/**/*.cs" Condition="'$(DesignTimeBuild)' != 'true'">
+      <!-- Hide the files and folder structure in the editor. -->
+      <Link>_%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </Compile>
     <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
   </ItemGroup>
   
@@ -53,28 +46,9 @@
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
   </ItemGroup>
 
-
-  <!--<Target Name="PostBuildPublish" AfterTargets="Build">-->
+  <Target Name="PostBuildPublish" AfterTargets="Build">
     <!-- So that we can create a nuget package which includes all dependencies, we publish the build. -->
     <!-- However, we cannot publish during the cross-targeting build, so we skip that. -->
-<!--    <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
-  </Target>
-  -->
-  
-  <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
-   <!-- 
-    The include needs to happen after output has been copied to build output folder
-    but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
-   -->
-    <ItemGroup>
-      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
-      <_PackageFiles Include="@(PublishedFiles)">
-        <PackagePath>tasks/$(RecursiveDir)</PackagePath>
-        <Visible>false</Visible>
-        <BuildAction>Content</BuildAction>
-      </_PackageFiles>
-    </ItemGroup>
+    <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
   </Target>
 </Project>

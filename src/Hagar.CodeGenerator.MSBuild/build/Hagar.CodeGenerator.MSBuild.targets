@@ -1,6 +1,7 @@
-<Project TreatAsLocalProperty="CodeGenDirectory;MSBuildIsCore;TargetIsCore;TaskAssembly;OutputFileName;CoreAssembly;FullAssembly;GeneratorAssembly">
+<Project TreatAsLocalProperty="CodeGenDirectory;MSBuildIsCore;DotNetHost;TargetIsCore;TaskAssembly;OutputFileName;CoreAssembly;FullAssembly;GeneratorAssembly">
 
   <PropertyGroup>
+    <DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</DotNetHost>
     <CoreAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</CoreAssembly>
     <FullAssembly Condition="'$(HagarCodeGenFullAssembly)' != ''">$(HagarCodeGenFullAssembly)</FullAssembly>
     <CoreAssembly Condition="'$(CoreAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.0\Hagar.CodeGenerator.MSBuild.dll</CoreAssembly>
@@ -9,7 +10,6 @@
     <!-- Specify the assembly containing the MSBuild tasks. -->
     <MSBuildIsCore Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(OS)' != 'Windows_NT'">true</MSBuildIsCore>
     <TaskAssembly Condition="'$(MSBuildIsCore)' == 'true'">$(CoreAssembly)</TaskAssembly>
-    <TaskAssembly Condition="'$(MSBuildIsCore)' != 'true'">$(FullAssembly)</TaskAssembly>
 
     <!-- When the MSBuild host is full-framework, we defer to PATH for dotnet -->
     <DotNetHost Condition="'$(MSBuildIsCore)' != 'true'">dotnet</DotNetHost>
@@ -40,15 +40,15 @@
     <CodeGeneratorEnabled Condition="'$(DesignTimeBuild)' != 'true'">true</CodeGeneratorEnabled>
   </PropertyGroup>-->
 
-  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true' and '$(DotNetHost)' == '' and '$(TargetIsCore)' == 'true'" />
-
+<!--
+  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true' and '$(DotNetHost)' == '' and '$(MSBuildIsCore)' == 'true'" />
+-->
   <Target Name="GenerateCode"
           BeforeTargets="CoreCompile"
           Condition="'$(CodeGeneratorEnabled)' == 'true'"
           Inputs="@(Compile);@(Reference)"
           Outputs="$(OutputFileName)">
-          <Message Importance="High" Text="Task: $(TaskAssembly)" />
-    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(DotNetHost)' == '' and '$(TargetIsCore)' == 'true' ">
+    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(DotNetHost)' == '' and '$(TargetIsCore)' == 'true' and '$(MSBuildIsCore)' == 'true' ">
       <Output TaskParameter="DotNetHost" PropertyName="DotNetHost" />
     </Hagar.CodeGenerator.MSBuild.GetDotNetHost>
     

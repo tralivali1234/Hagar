@@ -1,10 +1,19 @@
-<Project Condition=" '$(HagarCodeGen)' == 'true' ">
-  <PropertyGroup>
-    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/bin/publish/$(Configuration)/netcoreapp2.0/Hagar.CodeGenerator.MSBuild.dll</HagarCodeGenCoreAssembly>
-    <HagarCodeGenFullAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/bin/publish/$(Configuration)/net47/Hagar.CodeGenerator.MSBuild.exe</HagarCodeGenFullAssembly>
+<Project TreatAsLocalProperty="Asm">
+  <PropertyGroup Condition=" '$(HagarCodeGen)' == 'true' ">
+    <Asm>Hagar.CodeGenerator.MSBuild.Bootstrap</Asm>
+    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/$(Asm)/bin/publish/$(Configuration)/netcoreapp2.0/$(Asm).dll</HagarCodeGenCoreAssembly>
+    <HagarCodeGenFullAssembly>$(MSBuildThisFileDirectory)src/$(Asm)/bin/publish/$(Configuration)/net47/$(Asm).exe</HagarCodeGenFullAssembly>
+    <DotNetFromPath>true</DotNetFromPath>
   </PropertyGroup>
-  <Import
-    Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/build/Hagar.CodeGenerator.MSBuild.targets"
-    Condition=" '$(HagarCodeGen)' == 'true' " />
+  
+  <ItemGroup Condition=" '$(HagarCodeGen)' == 'true' ">
+    <ProjectReference
+      Include="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/Hagar.CodeGenerator.MSBuild.Bootstrap.csproj"
+      ReferenceOutputAssembly="false">
+        <HagarCodeGen>false</HagarCodeGen>
+      </ProjectReference>
+  </ItemGroup>
+  
+  <Import Condition=" '$(HagarCodeGen)' == 'true' " Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/build/Hagar.CodeGenerator.MSBuild.targets" />
 </Project>
 

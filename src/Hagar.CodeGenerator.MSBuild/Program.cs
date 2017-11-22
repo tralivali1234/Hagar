@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Hagar.CodeGenerator.MSBuild
 {
@@ -8,7 +9,7 @@ namespace Hagar.CodeGenerator.MSBuild
     {
         public static int Main(string[] args)
         {
-            while (!Debugger.IsAttached) Thread.Sleep(1000);
+            //while (!Debugger.IsAttached) Thread.Sleep(1000);
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: <ProjectFile> <OutputFile>");
@@ -21,7 +22,7 @@ namespace Hagar.CodeGenerator.MSBuild
                 OutputFile = args[1]
             };
 
-            var result = generator.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var result = generator.ExecuteAsync(LogLevel.Information, CancellationToken.None).GetAwaiter().GetResult();
             if (!result) return -1;
             return 0;
         }
