@@ -1,3 +1,5 @@
 $env:VersionDateSuffix = [System.DateTime]::Now.ToString("yyyyMMddHHmmss");
-dotnet build -bl:Build.binlog -v:d;
-dotnet pack -bl:Pack.binlog -v:d;
+dotnet build -bl:Build.binlog;
+if ($LASTEXITCODE -eq 0) {
+   dotnet pack -bl:Pack.binlog;
+}
