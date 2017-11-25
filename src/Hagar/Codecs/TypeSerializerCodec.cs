@@ -7,7 +7,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    internal class TypeSerializerCodec : IFieldCodec<Type>
+    public class TypeSerializerCodec : IFieldCodec<Type>
     {
         private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SchemaTypeType = typeof(SchemaType);
@@ -26,19 +26,22 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
             var (schemaType, id) = GetSchemaType(session, value);
 
-            // Write the encoding type
+            // Write the encoding type.
+            ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, 0, SchemaTypeType, SchemaTypeType, WireType.VarInt);
             writer.WriteVarInt((uint) schemaType);
 
             if (schemaType == SchemaType.Encoded)
             {
                 // If the type is encoded, write the length-prefixed bytes.
+                ReferenceCodec.MarkValueField(session);
                 writer.WriteFieldHeader(session, 1, ByteArrayType, ByteArrayType, WireType.LengthPrefixed);
                 session.TypeCodec.Write(writer, value);
             }
             else
             {
                 // If the type is referenced or well-known, write it as a varint.
+                ReferenceCodec.MarkValueField(session);
                 writer.WriteFieldHeader(session, 2, UIntType, UIntType, WireType.VarInt);
                 writer.WriteVarInt((uint) id);
             }
@@ -58,6 +61,7 @@ namespace Hagar.Codecs
             {
                 var header = reader.ReadFieldHeader(session);
                 if (header.IsEndBaseOrEndObject) break;
+                ReferenceCodec.MarkValueField(session);
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {

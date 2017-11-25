@@ -56,7 +56,6 @@ namespace Hagar.Codecs
 
     public class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
-
         void IFieldCodec<double>.WriteField(
             Writer writer,
             SerializerSession session,

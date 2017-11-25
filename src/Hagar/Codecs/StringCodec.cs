@@ -8,7 +8,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    internal class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
+    public class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
         private readonly IUntypedCodecProvider codecProvider;
         public StringCodec(IUntypedCodecProvider codecProvider)

@@ -18,7 +18,6 @@ namespace TestApp
 {
     public class Program
     {
-
         public static void TestOne()
         {
             Console.WriteLine("Hello World!");

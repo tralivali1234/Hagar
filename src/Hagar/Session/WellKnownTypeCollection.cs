@@ -11,7 +11,7 @@ namespace Hagar.Session
 
         public WellKnownTypeCollection(IConfiguration<TypeConfiguration> typeConfiguration)
         {
-            this.wellKnownTypes = typeConfiguration.Value.WellKnownTypes;
+            this.wellKnownTypes = typeConfiguration?.Value.WellKnownTypes ?? throw new ArgumentNullException(nameof(typeConfiguration));
             foreach (var item in this.wellKnownTypes)
             {
                 this.wellKnownTypeToIdMap[item.Value] = item.Key;

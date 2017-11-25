@@ -32,7 +32,6 @@ namespace Hagar.Serializers
             this.ConsumeMetadata(codecConfiguration);
         }
         
-
         private void Initialize()
         {
             if (this.initialized) return;

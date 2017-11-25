@@ -4,7 +4,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Hagar.Session
 {
-    internal class SessionPool
+    public class SessionPool
     {
         private readonly ObjectPool<SerializerSession> sessionPool;
 
