@@ -22,6 +22,9 @@ namespace Hagar.Configuration
 
 #warning need to also handle RuntimeType, not just Type
             codecs.Add(typeof(TypeSerializerCodec));
+
+            codecs.Add(typeof(SimpleArrayCodec<>));
+            codecs.Add(typeof(ByteArrayCodec));
         }
     }
 }

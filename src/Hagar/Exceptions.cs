@@ -210,4 +210,16 @@ namespace Hagar
         {
         }
     }
+
+    [Serializable]
+    public class RequiredFieldMissingException : HagarException
+    {
+        public RequiredFieldMissingException(string message) : base(message)
+        {
+        }
+
+        protected RequiredFieldMissingException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+    }
 }

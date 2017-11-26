@@ -30,7 +30,7 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
 
             var interfaceType = compilation.GetTypeByMetadataName("Hagar.Configuration.IConfigurationProvider`1").Construct(configType);
-            return ClassDeclaration(CodeGenerator.CodeGeneratorName + "_Metadata_" + compilation.AssemblyName)
+            return ClassDeclaration(CodeGenerator.CodeGeneratorName + "_Metadata_" + compilation.AssemblyName.Replace('.', '_'))
                 .AddBaseListTypes(SimpleBaseType(interfaceType.ToTypeSyntax()))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))

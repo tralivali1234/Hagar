@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hagar.Codecs;
 using Hagar.TestKit;
-using Hagar.TypeSystem;
 
 namespace Hagar.UnitTests
 {
@@ -10,6 +10,19 @@ namespace Hagar.UnitTests
     {
         protected override string CreateValue() => Guid.NewGuid().ToString();
         protected override bool Equals(string left, string right) => StringComparer.Ordinal.Equals(left, right);
+    }
+
+    public class ByteArrayCodecTests : FieldCodecTester<byte[], ByteArrayCodec>
+    {
+        protected override byte[] CreateValue() => Guid.NewGuid().ToByteArray();
+
+        protected override bool Equals(byte[] left, byte[] right) => left.SequenceEqual(right);
+    }
+
+    public class SimpleArrayCodecTests : FieldCodecTester<int[], SimpleArrayCodec<int>>
+    {
+        protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120)).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
+        protected override bool Equals(int[] left, int[] right) => left.SequenceEqual(right);
     }
 
     public class UInt64CodecTests : FieldCodecTester<ulong, UInt64Codec>
