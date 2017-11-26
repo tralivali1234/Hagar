@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
@@ -54,16 +55,49 @@ namespace Hagar.UnitTests
             Assert.NotEqual(original.UnmarkedField, result.UnmarkedField);
             Assert.NotEqual(original.UnmarkedProperty, result.UnmarkedProperty);
         }
-/*
-        [Fact]
-        public void UnmarkedFieldsAreNotSerialized()
-        {
-            var original = new GenericPoco<string>() { }
-            var result = this.RoundTripThroughCodec(original);
 
-            Assert.NotEqual(original.UnmarkedField, result.UnmarkedField);
-            Assert.NotEqual(original.UnmarkedProperty, result.UnmarkedProperty);
-        }*/
+        [Fact]
+        public void GenericPocosCanRoundTrip()
+        {
+            var original = new GenericPoco<string>
+            {
+                ArrayField = new[] { "a", "bb", "ccc" },
+                DictField = new Dictionary<string, string> { ["ducks"] = "friends", ["chickens"] = "delicious" },
+                Field = Guid.NewGuid().ToString("N")
+            };
+            var result = (GenericPoco<string>) this.RoundTripThroughUntypedSerializer(original);
+
+            Assert.Equal(original.ArrayField, result.ArrayField);
+            Assert.Equal(original.DictField, result.DictField);
+            Assert.Equal(original.Field, result.Field);
+        }
+
+        [Fact]
+        public void ArraysAreSupported()
+        {
+            var original = new[] { "a", "bb", "ccc" };
+            var result = (string[]) this.RoundTripThroughUntypedSerializer(original);
+
+            Assert.Equal(original, result);
+        }
+
+        [Fact]
+        public void MultiDimensionalArraysAreSupported()
+        {
+            var array2d = new string[,] { { "1", "2", "3" }, { "4", "5", "6" }, { "7", "8", "9" } };
+            var result2d = (string[,]) this.RoundTripThroughUntypedSerializer(array2d);
+
+            Assert.Equal(array2d, result2d);
+            var array3d = new string[,,]
+            {
+                { { "b", "b", "4" }, { "a", "g", "a" }, { "a", "g", "p" } },
+                { { "g", "r", "g" }, { "1", "3", "a" }, { "l", "k", "a" } },
+                { { "z", "b", "g" }, { "5", "7", "a" }, { "5", "n", "0" } }
+            };
+            var result3d = (string[,,])this.RoundTripThroughUntypedSerializer(array3d);
+
+            Assert.Equal(array3d, result3d);
+        }
 
         public void Dispose()
         {

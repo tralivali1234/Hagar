@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Hagar\Hagar.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="Library.fs" />
   </ItemGroup>
 

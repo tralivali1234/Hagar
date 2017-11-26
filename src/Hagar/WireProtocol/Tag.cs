@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Hagar.WireProtocol
 {
     public struct Tag

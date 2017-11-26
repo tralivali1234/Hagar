@@ -39,8 +39,6 @@ namespace Hagar
                 services.TryAddSingleton<TypeCodec>();
 
                 // Session
-                services.AddTransient<ReferencedTypeCollection>();
-                services.AddTransient<ReferencedObjectCollection>();
                 services.AddSingleton<SessionPool>();
 
                 // Serializer

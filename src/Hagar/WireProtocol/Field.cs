@@ -91,8 +91,9 @@ namespace Hagar.WireProtocol
         {
             var builder = new StringBuilder();
             builder.Append('[').Append((string) this.WireType.ToString());
-            if (this.HasFieldId) builder.Append($", Id:{this.FieldIdDelta}");
-            if (this.IsSchemaTypeValid) builder.Append($", Type:{this.SchemaType}");
+            if (this.HasFieldId) builder.Append($", IdDelta:{this.FieldIdDelta}");
+            if (this.IsSchemaTypeValid) builder.Append($", SchemaType:{this.SchemaType}");
+            if (this.HasExtendedSchemaType) builder.Append($", RuntimeType:{this.FieldType}");
             if (this.WireType == WireType.Extended) builder.Append($": {this.ExtendedWireType}");
             builder.Append(']');
             return builder.ToString();

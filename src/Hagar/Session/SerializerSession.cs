@@ -5,22 +5,16 @@ namespace Hagar.Session
 {
     public sealed class SerializerSession : IDisposable
     {
-        public SerializerSession(
-            TypeCodec typeCodec,
-            WellKnownTypeCollection wellKnownTypes,
-            ReferencedTypeCollection referencedTypes,
-            ReferencedObjectCollection referencedObjects)
+        public SerializerSession(TypeCodec typeCodec, WellKnownTypeCollection wellKnownTypes)
         {
             this.TypeCodec = typeCodec;
             this.WellKnownTypes = wellKnownTypes;
-            this.ReferencedTypes = referencedTypes;
-            this.ReferencedObjects = referencedObjects;
         }
 
         public TypeCodec TypeCodec { get; }
         public WellKnownTypeCollection WellKnownTypes { get; }
-        public ReferencedTypeCollection ReferencedTypes { get; }
-        public ReferencedObjectCollection ReferencedObjects { get; }
+        public ReferencedTypeCollection ReferencedTypes { get; } = new ReferencedTypeCollection();
+        public ReferencedObjectCollection ReferencedObjects { get; } = new ReferencedObjectCollection();
 
         internal Action<SerializerSession> OnDisposed { get; set; }
 

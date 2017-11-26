@@ -45,6 +45,11 @@ namespace Hagar.Session
             return false;
         }
 
+        public void RecordReferenceField(object value, uint referenceId)
+        {
+            this.referenceToIdMap.Add(value, referenceId);
+        }
+
         public Dictionary<uint, object> CopyReferenceTable() => new Dictionary<uint, object>(this.references);
         public Dictionary<object, uint> CopyIdTable() => new Dictionary<object, uint>(this.referenceToIdMap);
 

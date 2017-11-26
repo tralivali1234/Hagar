@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Hagar.Codecs;
 using Hagar.Configuration;
@@ -68,6 +69,10 @@ namespace Hagar.Serializers
                         if (genericType != iface.GetGenericTypeDefinition()) continue;
                         var genericArgument = iface.GetGenericArguments()[0];
                         if (typeof(object) == genericArgument) continue;
+                        if (genericArgument.IsConstructedGenericType && genericArgument.GenericTypeArguments.Any(arg => arg.IsGenericParameter))
+                        {
+                            genericArgument = genericArgument.GetGenericTypeDefinition();
+                        }
                         resultCollection[genericArgument] = fieldCodec;
                     }
                 }
@@ -210,11 +215,6 @@ namespace Hagar.Serializers
 
         private static void ThrowIfUnsupportedType(Type fieldType)
         {
-            if (fieldType.IsArray)
-            {
-                ThrowArrayType(fieldType);
-            }
-
             if (fieldType.IsGenericTypeDefinition)
             {
                 ThrowGenericTypeDefinition(fieldType);
@@ -248,6 +248,20 @@ namespace Hagar.Serializers
                     typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType),
                     partialSerializer);
             }
+            else if (fieldType.IsArray)
+            {
+                Type arrayCodecType;
+                if (fieldType.GetArrayRank() == 1)
+                {
+                    arrayCodecType = typeof(SimpleArrayCodec<>).MakeGenericType(fieldType.GetElementType());
+                }
+                else
+                {
+                    arrayCodecType = typeof(MultiDimensionalArrayCodec<>).MakeGenericType(fieldType.GetElementType());
+                }
+
+                untypedResult = (IFieldCodec) ActivatorUtilities.CreateInstance(this.serviceProvider, arrayCodecType);
+            }
 
             return untypedResult;
         }
@@ -261,13 +275,7 @@ namespace Hagar.Serializers
         {
             throw new NotSupportedException($"Type {fieldType} is a by-ref type and is therefore not supported.");
         }
-
-        private static void ThrowArrayType(Type fieldType)
-        {
-#warning implement array codec.
-            throw new NotImplementedException($"Type {fieldType} is an array type, but the array codec is not implemented yet");
-        }
-
+        
         private static void ThrowGenericTypeDefinition(Type fieldType)
         {
             throw new InvalidOperationException($"Type {fieldType} is a non-constructed generic type and is therefore unsupported.");

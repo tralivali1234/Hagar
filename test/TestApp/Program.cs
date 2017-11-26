@@ -9,6 +9,7 @@ using Hagar.Codecs;
 using Hagar.ISerializable;
 using Hagar.Json;
 using Hagar.Configuration;
+using Hagar.ObjectModel;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;
@@ -28,20 +29,30 @@ namespace TestApp
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
+            var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
 
-            var writeSession = serviceProvider.GetRequiredService<SerializerSession>();
+            var writeSession = sessionPool.GetSession();
             var writer = new Writer();
             codec.WriteField(writer,
                              writeSession,
                              0,
-                             null,
+                             typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
 
-            var reader = new Reader(writer.ToBytes());
-            var readerSession = serviceProvider.GetRequiredService<SerializerSession>();
-            var initialHeader = reader.ReadFieldHeader(readerSession);
-            var result = codec.ReadValue(reader, readerSession, initialHeader);
-            Console.WriteLine(result);
+            using (var readerSession = sessionPool.GetSession())
+            {
+                var reader = new Reader(writer.ToBytes());
+                Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
+            }
+
+            using (var readerSession = sessionPool.GetSession())
+            {
+                var reader = new Reader(writer.ToBytes());
+                var initialHeader = reader.ReadFieldHeader(readerSession);
+                var result = codec.ReadValue(reader, readerSession, initialHeader);
+                Console.WriteLine(result);
+            }
+
             Console.ReadKey();
         }
 

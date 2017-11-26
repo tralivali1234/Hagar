@@ -48,12 +48,13 @@ namespace Hagar.Codecs
                 ThrowReferenceNotFound(expectedType, reference);
             }
 
-            if (value is UnknownFieldMarker marker)
+            switch (value)
             {
-                return DeserializeFromMarker(reader, session, field, serializers, marker, reference, expectedType);
+                case UnknownFieldMarker marker:
+                    return DeserializeFromMarker(reader, session, field, serializers, marker, reference, expectedType);
+                default:
+                    return value;
             }
-
-            return value;
         }
 
         private static object DeserializeFromMarker(
@@ -92,7 +93,16 @@ namespace Hagar.Codecs
         }
 
         public static void RecordObject(SerializerSession session, object value) => session.ReferencedObjects.RecordReferenceField(value);
-        
+        public static void RecordObject(SerializerSession session, object value, uint referenceId) => session.ReferencedObjects.RecordReferenceField(value, referenceId);
+
+        public static uint CreateRecordPlaceholder(SerializerSession session)
+        {
+            var referencedObject = session.ReferencedObjects;
+            var placeholder = referencedObject.CurrentReferenceId;
+            referencedObject.CurrentReferenceId++;
+            return placeholder;
+        }
+
         private static void ThrowReferenceNotFound(Type expectedType, uint reference)
         {
             throw new ReferenceNotFoundException(expectedType, reference);

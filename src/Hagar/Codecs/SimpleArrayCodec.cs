@@ -10,7 +10,7 @@ namespace Hagar.Codecs
     /// Codec for arrays of rank 1.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    public class SimpleArrayCodec<T> : IFieldCodec<T[]>
+    internal class SimpleArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> fieldCodec;
         private readonly IFieldCodec<int> intCodec;
@@ -26,7 +26,7 @@ namespace Hagar.Codecs
         public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T[] value)
         {
             if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(T[]), WireType.TagDelimited);
+            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
             this.intCodec.WriteField(writer, session, 0, typeof(int), value.Length);
             var first = true;
@@ -45,6 +45,7 @@ namespace Hagar.Codecs
                 return ReferenceCodec.ReadReference<T[]>(reader, session, field, this.codecProvider);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
             T[] result = null;
             uint fieldId = 0;
             var length = 0;
@@ -59,6 +60,7 @@ namespace Hagar.Codecs
                     case 0:
                         length = this.intCodec.ReadValue(reader, session, header);
                         result = new T[length];
+                        ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
                         break;
                     case 1:
                         if (result == null) return ThrowLengthFieldMissing();
@@ -71,9 +73,7 @@ namespace Hagar.Codecs
                         break;
                 }
             }
-
-            ReferenceCodec.RecordObject(session, result);
-
+            
             return result;
         }
 
