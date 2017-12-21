@@ -26,7 +26,14 @@
           Condition="'$(CodeGeneratorEnabled)' == 'true'"
           Inputs="@(Compile);@(Reference)"
           Outputs="$(OutputFileName)">
-    <Hagar.CodeGenerator.MSBuild.GenerateHagarCode Compile="@(Compile -> '%(Identity)')" Reference="@(ReferencePath -> '%(Identity)')">
+    <Hagar.CodeGenerator.MSBuild.GenerateHagarCode
+      ProjectPath="$(MSBuildProjectFullPath)"
+      ProjectGuid="$(ProjectGuid)"
+      OutputType="$(OutputType)"
+      TargetPath="$(TargetPath)"
+      Compile="@(Compile -> '%(FullPath)')"
+      Reference="@(ReferencePath -> '%(FullPath)')"
+      >
     </Hagar.CodeGenerator.MSBuild.GenerateHagarCode>
     <!--
     <ItemGroup>
