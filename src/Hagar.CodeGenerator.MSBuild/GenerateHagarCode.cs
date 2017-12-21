@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Buildalyzer;
 using Microsoft.Build.Framework;
@@ -25,45 +26,57 @@ namespace Hagar.CodeGenerator.MSBuild
 
         public override bool Execute()
         {
-            if (Compile != null)
+            try
             {
-                this.Log.LogMessage(MessageImportance.High, $"Compile.Length: {Compile?.Length}");
-                foreach (var comp in Compile)
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    this.Log.LogMessage(MessageImportance.High, $"Compile: {comp}");
+                    this.Log.LogMessage(MessageImportance.High, $"Asm: {asm.GetName().FullName}");
                 }
-            }
-
-            if (Reference != null)
-            {
-                this.Log.LogMessage(MessageImportance.High, $"Reference.Length: {Reference?.Length}");
-                foreach (var comp in Reference)
+                if (Compile != null)
                 {
-                    this.Log.LogMessage(MessageImportance.High, $"Reference: {comp}");
+                    this.Log.LogMessage(MessageImportance.High, $"Compile.Length: {Compile?.Length}");
+                    foreach (var comp in Compile)
+                    {
+                        this.Log.LogMessage(MessageImportance.High, $"Compile: {comp}");
+                    }
                 }
-            }
+
+                if (Reference != null)
+                {
+                    this.Log.LogMessage(MessageImportance.High, $"Reference.Length: {Reference?.Length}");
+                    foreach (var comp in Reference)
+                    {
+                        this.Log.LogMessage(MessageImportance.High, $"Reference: {comp}");
+                    }
+                }
 
 
-            string projectName = Path.GetFileNameWithoutExtension(ProjectPath);
-            ProjectId projectId = !string.IsNullOrEmpty(ProjectGuid)
-                                  && Guid.TryParse(ProjectGuid, out var projectIdGuid)
-                ? ProjectId.CreateFromSerialized(projectIdGuid)
-                : ProjectId.CreateNewId();
-            var workspace = new AdhocWorkspace();
-            var languageName = GetLanguageName(ProjectPath);
-            workspace.AddProject(ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                projectName,
-                languageName, 
-                ProjectPath,
-                TargetPath,
-                CreateCompilationOptions(OutputType, languageName),
-                documents: GetDocuments(Compile, projectId),
-                metadataReferences: GetMetadataReferences(Reference)
+                string projectName = Path.GetFileNameWithoutExtension(ProjectPath);
+                ProjectId projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
+                    ? ProjectId.CreateFromSerialized(projectIdGuid)
+                    : ProjectId.CreateNewId();
+                var workspace = new AdhocWorkspace();
+                var languageName = GetLanguageName(ProjectPath);
+                workspace.AddProject(ProjectInfo.Create(
+                    projectId,
+                    VersionStamp.Create(),
+                    projectName,
+                    projectName,
+                    languageName,
+                    ProjectPath,
+                    TargetPath,
+                    CreateCompilationOptions(OutputType, languageName),
+                    documents: GetDocuments(Compile, projectId),
+                    metadataReferences: GetMetadataReferences(Reference)
                 ));
-            return true;
+                return true;
+            }
+            catch (ReflectionTypeLoadException rtle)
+            {
+                foreach (var ex in rtle.LoaderExceptions)
+                    this.Log.LogMessage(MessageImportance.High, $"Exception: {ex}");
+                throw;
+            }
         }
 
         private static IEnumerable<DocumentInfo> GetDocuments(string[] sources, ProjectId projectId) =>
