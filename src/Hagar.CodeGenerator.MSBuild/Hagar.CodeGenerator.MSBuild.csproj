@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 
   <PropertyGroup>
-    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
-    <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>
-    <OutputType>Exe</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>-->
+    <!--<RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>-->
+    <!--<OutputType>Exe</OutputType>-->
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
     <AssemblyName>Hagar.CodeGenerator.MSBuild</AssemblyName>
@@ -38,6 +39,9 @@
   <ItemGroup>
     <PackageReference Include="Buildalyzer" Version="0.2.1" />
     <PackageReference Include="Buildalyzer.Workspaces" Version="0.2.1" />
+    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.5.180" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
