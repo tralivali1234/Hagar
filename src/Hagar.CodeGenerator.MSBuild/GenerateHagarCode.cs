@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Buildalyzer;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,9 +54,23 @@ namespace Hagar.CodeGenerator.MSBuild
                 ProjectId projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
                     ? ProjectId.CreateFromSerialized(projectIdGuid)
                     : ProjectId.CreateNewId();
-                var workspace = new AdhocWorkspace();
+
+
+                this.Log.LogMessage(MessageImportance.High, $"ProjectGuid: {ProjectGuid}");
+                this.Log.LogMessage(MessageImportance.High, $"ProjectID: {projectId}");
+
                 var languageName = GetLanguageName(ProjectPath);
-                workspace.AddProject(ProjectInfo.Create(
+                var documents = GetDocuments(Compile, projectId).ToList();
+                var metadataReferences = GetMetadataReferences(Reference).ToList();
+
+                this.Log.LogMessage(MessageImportance.High, $"Document.Count: {documents.Count}");
+                foreach (var doc in documents)
+                    this.Log.LogMessage(MessageImportance.High, $"Document: {doc}");
+                this.Log.LogMessage(MessageImportance.High, $"Reference.Count: {metadataReferences.Count}");
+                foreach (var reference in metadataReferences)
+                    this.Log.LogMessage(MessageImportance.High, $"Ref: {reference}");
+
+                var projectInfo = ProjectInfo.Create(
                     projectId,
                     VersionStamp.Create(),
                     projectName,
@@ -66,9 +79,13 @@ namespace Hagar.CodeGenerator.MSBuild
                     ProjectPath,
                     TargetPath,
                     CreateCompilationOptions(OutputType, languageName),
-                    documents: GetDocuments(Compile, projectId),
-                    metadataReferences: GetMetadataReferences(Reference)
-                ));
+                    documents: documents,
+                    metadataReferences: metadataReferences
+                );
+                this.Log.LogMessage(MessageImportance.High, $"Project: {projectInfo}");
+
+                var workspace = new AdhocWorkspace();
+                workspace.AddProject(projectInfo);
                 return true;
             }
             catch (ReflectionTypeLoadException rtle)

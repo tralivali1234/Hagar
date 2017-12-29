@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Buildalyzer;
-using Buildalyzer.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
@@ -29,7 +27,7 @@ namespace Hagar.CodeGenerator.MSBuild
 
         public string OutputFile { get; set; }
         
-        public async Task<bool> ExecuteAsync(LogLevel logLevel, CancellationToken cancellation)
+        /*public async Task<bool> ExecuteAsync(LogLevel logLevel, CancellationToken cancellation)
         {
             using (new AssemblyResolver())
             using (var loggerFactory = new LoggerFactory())
@@ -59,9 +57,9 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 return true;
             }
-        }
+        }*/
 
-        private static async Task<Compilation> LoadProject(string projectFilePath, ILoggerFactory loggerFactory, CancellationToken cancellationToken)
+        /*private static async Task<Compilation> LoadProject(string projectFilePath, ILoggerFactory loggerFactory, CancellationToken cancellationToken)
         {
             var manager = new AnalyzerManager(loggerFactory);
             var analyzer = manager.GetProject(projectFilePath);
@@ -82,6 +80,6 @@ namespace Hagar.CodeGenerator.MSBuild
             var project = workspace.CurrentSolution.Projects.Single();
             var result = await project.GetCompilationAsync(cancellationToken);
             return result;
-        }
+        }*/
     }
 }

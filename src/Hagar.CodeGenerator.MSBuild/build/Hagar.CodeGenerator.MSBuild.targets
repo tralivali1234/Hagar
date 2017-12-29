@@ -32,9 +32,7 @@
       OutputType="$(OutputType)"
       TargetPath="$(TargetPath)"
       Compile="@(Compile -> '%(FullPath)')"
-      Reference="@(ReferencePath -> '%(FullPath)')"
-      >
-    </Hagar.CodeGenerator.MSBuild.GenerateHagarCode>
+      Reference="@(ReferencePath -> '%(FullPath)')" />
     <!--
     <ItemGroup>
       <Compile Include="$(OutputFileName)"/>
