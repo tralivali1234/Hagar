@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -72,10 +75,10 @@ namespace Hagar.CodeGenerator
             this.fieldIdAttribute = compilation.GetTypeByMetadataName("Hagar.FieldIdAttribute");
         }
 
-        public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
+        public async Task<CompilationUnitSyntax> GenerateCode(CancellationToken cancellationToken)
         {
             // Collect metadata from the compilation.
-            var serializableTypes = GetSerializableTypes(cancellationToken);
+            var serializableTypes = await GetSerializableTypes(cancellationToken);
 
             // Generate code.
             var members = new List<MemberDeclarationSyntax>();
@@ -107,14 +110,18 @@ namespace Hagar.CodeGenerator
                         .WithUsings(List(new[] {UsingDirective(ParseName("global::Hagar.Codecs"))}))));
         }
 
-        private List<TypeDescription> GetSerializableTypes(CancellationToken cancellationToken)
+        private async Task<List<TypeDescription>> GetSerializableTypes(CancellationToken cancellationToken)
         {
-            var results = new List<TypeDescription>();
+            var results = new List<TypeDescription>(1024);
             foreach (var syntaxTree in this.compilation.SyntaxTrees)
             {
+                var sw = Stopwatch.StartNew();
                 var semanticModel = this.compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-                var nodes = syntaxTree.GetRoot(cancellationToken).DescendantNodesAndSelf();
-                foreach (var node in nodes)
+                Console.WriteLine($"GetSemanticModel completed in {sw.ElapsedMilliseconds}ms.");
+                sw.Restart();
+                var rootNode = await syntaxTree.GetRootAsync(cancellationToken);
+                Console.WriteLine($"GetRootAsync completed in {sw.ElapsedMilliseconds}ms.");
+                foreach (var node in GetTypeDeclarations(rootNode))
                 {
                     if (!(node is TypeDeclarationSyntax decl)) continue;
                     if (!this.HasGenerateSerializerAttribute(decl, semanticModel)) continue;
@@ -124,6 +131,21 @@ namespace Hagar.CodeGenerator
             }
 
             return results;
+        }
+
+        private static IEnumerable<TypeDeclarationSyntax> GetTypeDeclarations(SyntaxNode node)
+        {
+            if (node is TypeDeclarationSyntax nodeDecl) yield return nodeDecl;
+            if (node is NamespaceDeclarationSyntax || node is TypeDeclarationSyntax || node is CompilationUnitSyntax)
+            {
+                foreach (var childNode in node.ChildNodes())
+                {
+                    foreach (var decl in GetTypeDeclarations(childNode))
+                    {
+                        yield return decl;
+                    }
+                }
+            }
         }
 
         private TypeDescription CreateTypeDescription(SemanticModel semanticModel, TypeDeclarationSyntax typeDecl)

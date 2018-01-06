@@ -75,7 +75,9 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 loggerFactory.AddConsole(logLevel);
                 cmd.Log = loggerFactory.CreateLogger("Hagar.CodeGenerator");
+                var stopwatch = Stopwatch.StartNew();
                 var ok = cmd.Execute(CancellationToken.None).GetAwaiter().GetResult();
+                cmd.Log.LogInformation($"Code generation completed in {stopwatch.ElapsedMilliseconds}ms.");
                 if (ok) return 0;
             }
 

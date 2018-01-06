@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -106,13 +107,26 @@ namespace Hagar.CodeGenerator.MSBuild
                 workspace.AddProject(projectInfo);
 
                 var project = workspace.CurrentSolution.Projects.Single();
+
+                var stopwatch = Stopwatch.StartNew();
                 var compilation = await project.GetCompilationAsync(cancellationToken);
+                this.Log.LogInformation($"GetCompilation completed in {stopwatch.ElapsedMilliseconds}ms.");
 
                 if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
 
                 var generator = new CodeGenerator(compilation);
-                var syntax = generator.GenerateCode(cancellationToken).NormalizeWhitespace();
-                var source = syntax.ToFullString();
+                stopwatch.Restart();
+                var syntax = await generator.GenerateCode(cancellationToken);
+                this.Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");
+                stopwatch.Restart();
+                
+                    var normalized = syntax.NormalizeWhitespace();
+                    this.Log.LogInformation($"NormalizeWhitespace completed in {stopwatch.ElapsedMilliseconds}ms.");
+                    stopwatch.Restart();
+
+                var source = normalized.ToFullString();
+                this.Log.LogInformation($"Generate source from syntax completed in {stopwatch.ElapsedMilliseconds}ms.");
+                stopwatch.Restart();
                 using (var sourceWriter = new StreamWriter(this.CodeGenOutputFile))
                 {
                     sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
@@ -121,6 +135,7 @@ namespace Hagar.CodeGenerator.MSBuild
                     foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning restore {warningNum}");
                     sourceWriter.WriteLine("#endif");
                 }
+                this.Log.LogInformation($"Write source to disk completed in {stopwatch.ElapsedMilliseconds}ms.");
 
                 return true;
             }
