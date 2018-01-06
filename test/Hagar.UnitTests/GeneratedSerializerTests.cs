@@ -62,13 +62,11 @@ namespace Hagar.UnitTests
             var original = new GenericPoco<string>
             {
                 ArrayField = new[] { "a", "bb", "ccc" },
-                DictField = new Dictionary<string, string> { ["ducks"] = "friends", ["chickens"] = "delicious" },
                 Field = Guid.NewGuid().ToString("N")
             };
             var result = (GenericPoco<string>) this.RoundTripThroughUntypedSerializer(original);
 
             Assert.Equal(original.ArrayField, result.ArrayField);
-            Assert.Equal(original.DictField, result.DictField);
             Assert.Equal(original.Field, result.Field);
         }
 

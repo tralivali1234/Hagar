@@ -35,9 +35,6 @@ namespace Hagar.UnitTests
 
         [FieldId(1030)]
         public T[] ArrayField { get; set; }
-
-        [FieldId(2222)]
-        public Dictionary<T, T> DictField { get; set; }
     }
 
     [GenerateSerializer]

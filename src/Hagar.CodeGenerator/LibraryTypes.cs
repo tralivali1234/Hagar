@@ -10,6 +10,7 @@ namespace Hagar.CodeGenerator
             {
                 PartialSerializer = compilation.GetTypeByMetadataName("Hagar.Serializers.IPartialSerializer`1"),
                 FieldCodec = compilation.GetTypeByMetadataName("Hagar.Codecs.IFieldCodec`1"),
+                TypedCodecProvider = compilation.GetTypeByMetadataName("Hagar.Serializers.ITypedCodecProvider"),
                 Writer = compilation.GetTypeByMetadataName("Hagar.Buffers.Writer"),
                 Reader = compilation.GetTypeByMetadataName("Hagar.Buffers.Reader"),
                 SerializerSession = compilation.GetTypeByMetadataName("Hagar.Session.SerializerSession"),
@@ -19,6 +20,8 @@ namespace Hagar.CodeGenerator
                 ConfigurationProvider = compilation.GetTypeByMetadataName("Hagar.Configuration.IConfigurationProvider`1")
             };
         }
+
+        public INamedTypeSymbol TypedCodecProvider { get; private set; }
 
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
 
