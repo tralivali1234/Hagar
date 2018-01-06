@@ -18,8 +18,7 @@ namespace Hagar.ISerializable
         private readonly IUntypedCodecProvider untypedCodecProvider;
         private readonly SerializationConstructorFactory constructorFactory = new SerializationConstructorFactory();
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
-
-        // TODO: Use a cached read concurrent dictionary.
+        
         private readonly ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>> constructors =
             new ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>>();
         
@@ -102,7 +101,5 @@ namespace Hagar.ISerializable
 
         private static object ThrowTypeNotSpecified() => throw new InvalidOperationException(
             "The object type is required but was not present during deserialization.");
-
-        private static void ThrowIllegalType(Type type) => throw new IllegalTypeException(type.FullName);
     }
 }

@@ -38,6 +38,7 @@
           Outputs="$(OutputFileName)">
 
     <ItemGroup>
+      <CodeGenArgs Include="LogLevel:$(HagarCodeGenLogLevel)" />
       <CodeGenArgs Include="ProjectPath:$(MSBuildProjectFullPath)"/>
       <CodeGenArgs Include="ProjectGuid:$(ProjectGuid)"/>
       <CodeGenArgs Include="OutputType:$(OutputType)"/>

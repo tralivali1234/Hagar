@@ -22,14 +22,15 @@ namespace Hagar.CodeGenerator
                         (StatementSyntax) ExpressionStatement(InvocationExpression(addMethod, ArgumentList(SingletonSeparatedList(Argument(TypeOfExpression(GetPartialSerializerTypeName(type.Type)))))))
                 ));
 
-            var configType = compilation.GetTypeByMetadataName("Hagar.Configuration.SerializerConfiguration");
+            var libraryTypes = LibraryTypes.FromCompilation(compilation);
+            var configType = libraryTypes.SerializerConfiguration;
             var configureMethod = MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Configure")
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
                     Parameter(configParam.Identifier).WithType(configType.ToTypeSyntax()))
                 .AddBodyStatements(body.ToArray());
 
-            var interfaceType = compilation.GetTypeByMetadataName("Hagar.Configuration.IConfigurationProvider`1").Construct(configType);
+            var interfaceType = libraryTypes.ConfigurationProvider.Construct(configType);
             return ClassDeclaration(CodeGenerator.CodeGeneratorName + "_Metadata_" + compilation.AssemblyName.Replace('.', '_'))
                 .AddBaseListTypes(SimpleBaseType(interfaceType.ToTypeSyntax()))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))

@@ -29,116 +29,107 @@ namespace Hagar.CodeGenerator.MSBuild
             1998 // CS1998 - This async method lacks 'await' operators and will run synchronously
         };
 
-        private readonly ILogger log;
-
-        public CodeGeneratorCommand(ILogger log)
-        {
-            this.log = log;
-        }
-
+        public ILogger Log { get; set; }
+        
+        /// <summary>
+        /// The MSBuild project path.
+        /// </summary>
         public string ProjectPath { get; set; }
+
+        /// <summary>
+        /// The optional ProjectGuid.
+        /// </summary>
         public string ProjectGuid { get; set; }
+
+        /// <summary>
+        /// The output type, such as Exe, or Library.
+        /// </summary>
         public string OutputType { get; set; }
+
+        /// <summary>
+        /// The target path of the compilation.
+        /// </summary>
         public string TargetPath { get; set; }
+
+        /// <summary>
+        /// The source files.
+        /// </summary>
         public List<string> Compile { get; } = new List<string>();
+
+        /// <summary>
+        /// The libraries referenced by the project.
+        /// </summary>
         public List<string> Reference { get; } = new List<string>();
 
+        /// <summary>
+        /// The file which holds the generated code.
+        /// </summary>
         public string CodeGenOutputFile { get; set; }
 
         public async Task<bool> Execute(CancellationToken cancellationToken)
         {
             try
             {
-                return await ExecuteInternal(cancellationToken);
+                var projectName = Path.GetFileNameWithoutExtension(ProjectPath);
+                var projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
+                    ? ProjectId.CreateFromSerialized(projectIdGuid)
+                    : ProjectId.CreateNewId();
+
+
+                this.Log.LogDebug($"ProjectGuid: {ProjectGuid}");
+                this.Log.LogDebug($"ProjectID: {projectId}");
+
+                var languageName = GetLanguageName(ProjectPath);
+                var documents = GetDocuments(Compile, projectId).ToList();
+                var metadataReferences = GetMetadataReferences(Reference).ToList();
+                
+                foreach (var doc in documents)
+                    this.Log.LogDebug($"Document: {doc.FilePath}");
+                foreach (var reference in metadataReferences)
+                    this.Log.LogDebug($"Reference: {reference.Display}");
+
+                var projectInfo = ProjectInfo.Create(
+                    projectId,
+                    VersionStamp.Create(),
+                    projectName,
+                    projectName,
+                    languageName,
+                    ProjectPath,
+                    TargetPath,
+                    CreateCompilationOptions(OutputType, languageName),
+                    documents: documents,
+                    metadataReferences: metadataReferences
+                );
+                this.Log.LogDebug($"Project: {projectInfo}");
+
+                var workspace = new AdhocWorkspace();
+                workspace.AddProject(projectInfo);
+
+                var project = workspace.CurrentSolution.Projects.Single();
+                var compilation = await project.GetCompilationAsync(cancellationToken);
+
+                if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
+
+                var generator = new CodeGenerator(compilation);
+                var syntax = generator.GenerateCode(cancellationToken).NormalizeWhitespace();
+                var source = syntax.ToFullString();
+                using (var sourceWriter = new StreamWriter(this.CodeGenOutputFile))
+                {
+                    sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
+                    foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning disable {warningNum}");
+                    if (!string.IsNullOrWhiteSpace(source)) await sourceWriter.WriteLineAsync(source);
+                    foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning restore {warningNum}");
+                    sourceWriter.WriteLine("#endif");
+                }
+
+                return true;
             }
             catch (ReflectionTypeLoadException rtle)
             {
                 foreach (var ex in rtle.LoaderExceptions)
-                    this.log.LogInformation($"Exception: {ex}");
+                    this.Log.LogDebug($"Exception: {ex}");
                 throw;
             }
-        }
-
-        private async Task<bool> ExecuteInternal(CancellationToken cancellationToken)
-        {
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                this.log.LogInformation($"Asm: {asm.GetName().FullName}");
-            }
-            if (Compile != null)
-            {
-                this.log.LogInformation($"Compile.Length: {Compile.Count}");
-                foreach (var comp in Compile)
-                {
-                    this.log.LogInformation($"Compile: {comp}");
-                }
-            }
-
-            if (Reference != null)
-            {
-                this.log.LogInformation($"Reference.Length: {Reference?.Count}");
-                foreach (var comp in Reference)
-                {
-                    this.log.LogInformation($"Reference: {comp}");
-                }
-            }
-
-
-            string projectName = Path.GetFileNameWithoutExtension(ProjectPath);
-            ProjectId projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
-                ? ProjectId.CreateFromSerialized(projectIdGuid)
-                : ProjectId.CreateNewId();
-
-
-            this.log.LogInformation($"ProjectGuid: {ProjectGuid}");
-            this.log.LogInformation($"ProjectID: {projectId}");
-
-            var languageName = GetLanguageName(ProjectPath);
-            var documents = GetDocuments(Compile, projectId).ToList();
-            var metadataReferences = GetMetadataReferences(Reference).ToList();
-
-            this.log.LogInformation($"Document.Count: {documents.Count}");
-            foreach (var doc in documents)
-                this.log.LogInformation($"Document: {doc.FilePath}");
-            this.log.LogInformation($"Reference.Count: {metadataReferences.Count}");
-            foreach (var reference in metadataReferences)
-                this.log.LogInformation($"Ref: {reference.Display}");
-
-            var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                projectName,
-                languageName,
-                ProjectPath,
-                TargetPath,
-                CreateCompilationOptions(OutputType, languageName),
-                documents: documents,
-                metadataReferences: metadataReferences
-            );
-            this.log.LogInformation($"Project: {projectInfo}");
-
-            var workspace = new AdhocWorkspace();
-            workspace.AddProject(projectInfo);
-
-            var project = workspace.CurrentSolution.Projects.Single();
-            var compilation = await project.GetCompilationAsync(cancellationToken);
-
-            if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
-
-            var generator = new CodeGenerator(compilation);
-            var syntax = generator.GenerateCode(cancellationToken).NormalizeWhitespace();
-            var source = syntax.ToFullString();
-            using (var sourceWriter = new StreamWriter(this.CodeGenOutputFile))
-            {
-                sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
-                foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning disable {warningNum}");
-                await sourceWriter.WriteLineAsync(source);
-                foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning restore {warningNum}");
-                sourceWriter.WriteLine("#endif");
-            }
-
-            return true;
         }
 
         private static IEnumerable<DocumentInfo> GetDocuments(List<string> sources, ProjectId projectId) =>

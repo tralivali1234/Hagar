@@ -9,69 +9,6 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal class LibraryTypes
-    {
-        public static LibraryTypes FromCompilation(Compilation compilation)
-        {
-            return new LibraryTypes
-            {
-                PartialSerializer = compilation.GetTypeByMetadataName("Hagar.Serializers.IPartialSerializer`1"),
-                FieldCodec = compilation.GetTypeByMetadataName("Hagar.Codecs.IFieldCodec`1"),
-                Writer = compilation.GetTypeByMetadataName("Hagar.Buffers.Writer"),
-                Reader = compilation.GetTypeByMetadataName("Hagar.Buffers.Reader"),
-                SerializerSession = compilation.GetTypeByMetadataName("Hagar.Session.SerializerSession"),
-                Object = compilation.GetSpecialType(SpecialType.System_Object),
-                Type = compilation.GetTypeByMetadataName("System.Type"),
-            };
-        }
-
-        public INamedTypeSymbol Type { get; set; }
-
-        public INamedTypeSymbol Object { get; set; }
-
-        public INamedTypeSymbol SerializerSession { get; set; }
-
-        public INamedTypeSymbol Reader { get; set; }
-
-        public INamedTypeSymbol Writer { get; set; }
-
-        public INamedTypeSymbol FieldCodec { get; set; }
-
-        public INamedTypeSymbol PartialSerializer { get; set; }
-    }
-
-    internal class SerializerFieldDescription
-    {
-        public SerializerFieldDescription(ITypeSymbol fieldType, string fieldName)
-        {
-            this.FieldType = fieldType;
-            this.FieldName = fieldName;
-        }
-
-        public ITypeSymbol FieldType { get; }
-        public string FieldName { get; }
-    }
-
-    internal class CodecFieldDescription : SerializerFieldDescription
-    {
-        public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
-        {
-            this.UnderlyingType = underlyingType;
-        }
-
-        public ITypeSymbol UnderlyingType { get; }
-    }
-
-    internal class TypeFieldDescription : SerializerFieldDescription
-    {
-        public TypeFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
-        {
-            this.UnderlyingType = underlyingType;
-        }
-
-        public ITypeSymbol UnderlyingType { get; }
-    }
-
     internal static class PartialSerializerGenerator
     {
         private const string ClassPrefix = CodeGenerator.CodeGeneratorName + "_Partial";
