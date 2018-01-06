@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -10,33 +11,58 @@ namespace Hagar.CodeGenerator.MSBuild
         public static int Main(string[] args)
         {
             //while (!Debugger.IsAttached) Thread.Sleep(1000);
-            if (args.Length < 2)
+            if (args.Length < 1)
             {
-                Console.WriteLine("Usage: <ProjectFile> <OutputFile>");
+                Console.WriteLine("Usage: <ArgumentsFile>");
                 return -2;
             }
 
-            // HACK: https://github.com/daveaglick/Buildalyzer/issues/29
-
-            var dotnetSdkVersion = "2.0.0";
-            var extensionsPath = $@"C:\Program Files\dotnet\sdk\{dotnetSdkVersion}";
-            var msbuildSdkPath = $@"{extensionsPath}\SDKs";
-            Environment.SetEnvironmentVariable("VisualStudioVersion", "15.0");
-            Environment.SetEnvironmentVariable("MSBuildExtensionsPath", extensionsPath);
-            Environment.SetEnvironmentVariable("MSBuildSDKsPath", msbuildSdkPath);
-            Environment.SetEnvironmentVariable("VSINSTALLDIR", @"C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\");
-
-            // END
-
-            var generator = new ProjectCodeGenerator
+            using (new AssemblyResolver())
+            using (var loggerFactory = new LoggerFactory())
             {
-                ProjectFile = args[0],
-                OutputFile = args[1]
-            };
+                loggerFactory.AddConsole();
+                var cmd = new CodeGeneratorCommand(loggerFactory.CreateLogger("Hagar.CodeGenerator"));
 
-            var result = generator.ExecuteAsync(LogLevel.Information, CancellationToken.None).GetAwaiter().GetResult();
-            if (!result) return -1;
-            return 0;
+                string argsFile = args[0].Trim('"');
+                var fileArgs = File.ReadAllLines(argsFile);
+                foreach (var arg in fileArgs)
+                {
+                    var parts = arg.Split(new[] { ':' }, 2);
+                    var key = parts[0];
+                    var value = parts[1];
+                    switch (key)
+                    {
+                        case nameof(cmd.ProjectGuid):
+                            cmd.ProjectGuid = value;
+                            break;
+                        case nameof(cmd.ProjectPath):
+                            cmd.ProjectPath = value;
+                            break;
+                        case nameof(cmd.OutputType):
+                            cmd.OutputType = value;
+                            break;
+                        case nameof(cmd.TargetPath):
+                            cmd.TargetPath = value;
+                            break;
+                        case nameof(cmd.Compile):
+                            cmd.Compile.Add(value);
+                            break;
+                        case nameof(cmd.Reference):
+                            cmd.Reference.Add(value);
+                            break;
+                        case nameof(cmd.CodeGenOutputFile):
+                            cmd.CodeGenOutputFile = value;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Key '{key}' in argument file is unknown");
+                    }
+                }
+
+                var ok = cmd.Execute(CancellationToken.None).GetAwaiter().GetResult();
+                if (ok) return 0;
+            }
+
+            return -1;
         }
     }
 }

@@ -1,7 +1,8 @@
 <Project TreatAsLocalProperty="Asm">
   <PropertyGroup Condition=" '$(HagarCodeGen)' == 'true' ">
     <Asm>Hagar.CodeGenerator.MSBuild.Bootstrap</Asm>
-    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/$(Asm)/bin/publish/$(Configuration)/netstandard2.0/$(Asm).dll</HagarCodeGenCoreAssembly>
+    <HagarCodeGenFullAssembly>$(MSBuildThisFileDirectory)src/$(Asm)/bin/publish/$(Configuration)/net47/$(Asm).exe</HagarCodeGenFullAssembly>
+    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/$(Asm)/bin/publish/$(Configuration)/netcoreapp2.0/$(Asm).dll</HagarCodeGenCoreAssembly>
   </PropertyGroup>
   
   <ItemGroup Condition=" '$(HagarCodeGen)' == 'true' ">
