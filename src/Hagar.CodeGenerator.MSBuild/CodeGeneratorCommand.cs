@@ -120,9 +120,9 @@ namespace Hagar.CodeGenerator.MSBuild
                 this.Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");
                 stopwatch.Restart();
                 
-                    var normalized = syntax.NormalizeWhitespace();
-                    this.Log.LogInformation($"NormalizeWhitespace completed in {stopwatch.ElapsedMilliseconds}ms.");
-                    stopwatch.Restart();
+                var normalized = syntax.NormalizeWhitespace();
+                this.Log.LogInformation($"NormalizeWhitespace completed in {stopwatch.ElapsedMilliseconds}ms.");
+                stopwatch.Restart();
 
                 var source = normalized.ToFullString();
                 this.Log.LogInformation($"Generate source from syntax completed in {stopwatch.ElapsedMilliseconds}ms.");

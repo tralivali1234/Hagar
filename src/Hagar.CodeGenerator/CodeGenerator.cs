@@ -15,7 +15,6 @@ namespace Hagar.CodeGenerator
     internal interface IMemberDescription
     {
         uint FieldId { get; }
-
         ISymbol Member { get; }
         ITypeSymbol Type { get; }
     }
@@ -115,18 +114,12 @@ namespace Hagar.CodeGenerator
             var results = new List<TypeDescription>(1024);
             foreach (var syntaxTree in this.compilation.SyntaxTrees)
             {
-                var sw = Stopwatch.StartNew();
                 var semanticModel = this.compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-                Console.WriteLine($"GetSemanticModel completed in {sw.ElapsedMilliseconds}ms.");
-                sw.Restart();
                 var rootNode = await syntaxTree.GetRootAsync(cancellationToken);
-                Console.WriteLine($"GetRootAsync completed in {sw.ElapsedMilliseconds}ms.");
                 foreach (var node in GetTypeDeclarations(rootNode))
                 {
-                    if (!(node is TypeDeclarationSyntax decl)) continue;
-                    if (!this.HasGenerateSerializerAttribute(decl, semanticModel)) continue;
-                    var typeDescription = this.CreateTypeDescription(semanticModel, decl);
-                    results.Add(typeDescription);
+                    if (!this.HasGenerateSerializerAttribute(node, semanticModel)) continue;
+                    results.Add(this.CreateTypeDescription(semanticModel, node));
                 }
             }
 
@@ -135,15 +128,28 @@ namespace Hagar.CodeGenerator
 
         private static IEnumerable<TypeDeclarationSyntax> GetTypeDeclarations(SyntaxNode node)
         {
-            if (node is TypeDeclarationSyntax nodeDecl) yield return nodeDecl;
-            if (node is NamespaceDeclarationSyntax || node is TypeDeclarationSyntax || node is CompilationUnitSyntax)
+            SyntaxList<MemberDeclarationSyntax> members;
+            switch (node)
             {
-                foreach (var childNode in node.ChildNodes())
+                case TypeDeclarationSyntax type:
+                    yield return type;
+                    members = type.Members;
+                    break;
+                case NamespaceDeclarationSyntax ns:
+                    members = ns.Members;
+                    break;
+                case CompilationUnitSyntax compilationUnit:
+                    members = compilationUnit.Members;
+                    break;
+                default:
+                    yield break;
+            }
+
+            foreach (var member in members)
+            {
+                foreach (var decl in GetTypeDeclarations(member))
                 {
-                    foreach (var decl in GetTypeDeclarations(childNode))
-                    {
-                        yield return decl;
-                    }
+                    yield return decl;
                 }
             }
         }
@@ -225,7 +231,6 @@ namespace Hagar.CodeGenerator
                             AttributeArgument(assemblyVersion.GetLiteralExpression())))
                   .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)));
             return generatedCodeAttribute;
-
         }
 
         internal static AttributeSyntax GetGeneratedCodeAttributeSyntax()
