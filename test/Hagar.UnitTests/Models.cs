@@ -47,4 +47,26 @@ namespace Hagar.UnitTests
         [FieldId(999)]
         public TStruct ValueField { get; set; }
     }
+
+    [GenerateSerializer]
+    public class ArrayPoco<T>
+    {
+        [FieldId(0)]
+        public T[] Array { get; set; }
+
+        [FieldId(1)]
+        public T[,] Dim2 { get; set; }
+
+        [FieldId(2)]
+        public T[,,] Dim3 { get; set; }
+
+        [FieldId(3)]
+        public T[,,,] Dim4 { get; set; }
+        
+        [FieldId(4)]
+        public T[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] Dim33 { get; set; }
+
+        [FieldId(5)]
+        public T[][] Jagged { get; set; }
+    }
 }
