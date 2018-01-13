@@ -64,7 +64,7 @@ namespace Hagar.UnitTests
         public T[,,,] Dim4 { get; set; }
         
         [FieldId(4)]
-        public T[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] Dim33 { get; set; }
+        public T[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] Dim32 { get; set; }
 
         [FieldId(5)]
         public T[][] Jagged { get; set; }

@@ -5,6 +5,7 @@ using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Hagar.UnitTests
@@ -74,9 +75,26 @@ namespace Hagar.UnitTests
         public void ArraysAreSupported()
         {
             var original = new[] { "a", "bb", "ccc" };
-            var result = (string[]) this.RoundTripThroughUntypedSerializer(original);
+            var result = (string[])this.RoundTripThroughUntypedSerializer(original);
 
             Assert.Equal(original, result);
+        }
+
+        [Fact]
+        public void ArraysPocoRoundTrip()
+        {
+            var original = new ArrayPoco<int>
+            {
+                Array = new[] {1, 2, 3},
+                Dim2 = new int[,] {{1}, {2}},
+                Dim3 = new int[,,] {{{2}}},
+                Dim4 = new int[,,,] { { { { 4} } } },
+                Dim32 = new int[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] {{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{809}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}},
+                Jagged = new int[][] {new int[] {909}}
+            };
+            var result = (ArrayPoco<int>)this.RoundTripThroughUntypedSerializer(original);
+
+            Assert.Equal(JsonConvert.SerializeObject(original), JsonConvert.SerializeObject(result));
         }
 
         [Fact]
