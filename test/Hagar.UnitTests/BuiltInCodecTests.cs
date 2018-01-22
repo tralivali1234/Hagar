@@ -19,7 +19,7 @@ namespace Hagar.UnitTests
         protected override bool Equals(byte[] left, byte[] right) => left.SequenceEqual(right);
     }
 
-    internal class SimpleArrayCodecTests : FieldCodecTester<int[], SimpleArrayCodec<int>>
+    internal class ArrayCodecTests : FieldCodecTester<int[], ArrayCodec<int>>
     {
         protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120)).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
         protected override bool Equals(int[] left, int[] right) => left.SequenceEqual(right);

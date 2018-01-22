@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Hagar.Activator;
+using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Session;

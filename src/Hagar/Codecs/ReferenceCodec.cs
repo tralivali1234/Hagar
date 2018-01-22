@@ -95,6 +95,9 @@ namespace Hagar.Codecs
         public static void RecordObject(SerializerSession session, object value) => session.ReferencedObjects.RecordReferenceField(value);
         public static void RecordObject(SerializerSession session, object value, uint referenceId) => session.ReferencedObjects.RecordReferenceField(value, referenceId);
 
+        /// <summary>
+        /// Records and returns a placeholder reference id for objects which cannot be immediately deserialized.
+        /// </summary>
         public static uint CreateRecordPlaceholder(SerializerSession session)
         {
             var referencedObject = session.ReferencedObjects;

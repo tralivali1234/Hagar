@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Hagar.Activator;
+using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Configuration;

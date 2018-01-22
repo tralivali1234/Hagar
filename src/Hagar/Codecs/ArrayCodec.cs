@@ -10,13 +10,13 @@ namespace Hagar.Codecs
     /// Codec for arrays of rank 1.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    internal class SimpleArrayCodec<T> : IFieldCodec<T[]>
+    internal class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> fieldCodec;
         private readonly IFieldCodec<int> intCodec;
         private readonly IUntypedCodecProvider codecProvider;
 
-        public SimpleArrayCodec(IFieldCodec<T> fieldCodec, IFieldCodec<int> intCodec, IUntypedCodecProvider codecProvider)
+        public ArrayCodec(IFieldCodec<T> fieldCodec, IFieldCodec<int> intCodec, IUntypedCodecProvider codecProvider)
         {
             this.fieldCodec = fieldCodec;
             this.intCodec = intCodec;

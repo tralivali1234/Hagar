@@ -253,7 +253,7 @@ namespace Hagar.Serializers
                 Type arrayCodecType;
                 if (fieldType.GetArrayRank() == 1)
                 {
-                    arrayCodecType = typeof(SimpleArrayCodec<>).MakeGenericType(fieldType.GetElementType());
+                    arrayCodecType = typeof(ArrayCodec<>).MakeGenericType(fieldType.GetElementType());
                 }
                 else
                 {
