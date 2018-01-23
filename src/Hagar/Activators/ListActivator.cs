@@ -2,7 +2,7 @@
 
 namespace Hagar.Activators
 {
-    public class ListActivator<T> : IActivator<int, List<T>>
+    public class ListActivator<T>
     {
         public List<T> Create(int arg)
         {

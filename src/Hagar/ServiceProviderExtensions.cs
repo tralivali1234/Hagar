@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Hagar.Activators;
@@ -27,6 +28,8 @@ namespace Hagar
                 services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultSerializerConfiguration>();
                 services.AddSingleton<IConfigurationProvider<TypeConfiguration>, DefaultTypeConfiguration>();
                 services.TryAddSingleton(typeof(IActivator<>), typeof(DefaultActivator<>));
+                services.TryAddSingleton(typeof(ListActivator<>));
+                services.TryAddSingleton(typeof(DictionaryActivator<,>));
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
                 services.TryAddSingleton<ITypeResolver, CachedTypeResolver>();
                 services.TryAddSingleton<CodecProvider>();

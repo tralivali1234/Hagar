@@ -117,4 +117,30 @@ namespace Hagar.UnitTests
     {
         protected override decimal CreateValue() => decimal.MaxValue * (decimal) new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
     }
+
+    public class ListCodecTests : FieldCodecTester<List<int>, ListCodec<int>>
+    {
+        protected override List<int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new List<int>();
+            for (var i = 0; i < rand.Next(17); i++) result.Add(rand.Next());
+            return result;
+        }
+
+        protected override bool Equals(List<int> left, List<int> right) => left.SequenceEqual(right);
+    }
+
+    public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
+    {
+        protected override Dictionary<string, int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new Dictionary<string, int>();
+            for (var i = 0; i < rand.Next(17); i++) result[rand.Next().ToString()] = rand.Next();
+            return result;
+        }
+
+        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => left.SequenceEqual(right);
+    }
 }

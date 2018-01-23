@@ -16,22 +16,19 @@ namespace Hagar.Codecs
     public class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>>
     {
         private readonly IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec;
-        private readonly IFieldCodec<int> intCodec;
         private readonly IUntypedCodecProvider codecProvider;
-        private readonly IFieldCodec<IEqualityComparer<TKey>> ecCodec;
-        private readonly IActivator<ValueTuple<IEqualityComparer<TKey>, int>, Dictionary<TKey, TValue>> activator;
+        private readonly IFieldCodec<Type> typeCodec;
+        private readonly DictionaryActivator<TKey, TValue> activator;
 
         public DictionaryCodec(
             IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec,
-            IFieldCodec<int> intCodec,
             IUntypedCodecProvider codecProvider,
-            IFieldCodec<IEqualityComparer<TKey>> ecCodec,
-            IActivator<ValueTuple<IEqualityComparer<TKey>, int>, Dictionary<TKey, TValue>> activator)
+            IFieldCodec<Type> typeCodec,
+            DictionaryActivator<TKey, TValue> activator)
         {
             this.pairCodec = pairCodec;
-            this.intCodec = intCodec;
             this.codecProvider = codecProvider;
-            this.ecCodec = ecCodec;
+            this.typeCodec = typeCodec;
             this.activator = activator;
         }
 
@@ -42,10 +39,8 @@ namespace Hagar.Codecs
             
             if (value.Comparer != EqualityComparer<TKey>.Default)
             {
-                this.ecCodec.WriteField(writer, session, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
+                this.typeCodec.WriteField(writer, session, 0, typeof(Type), value.Comparer?.GetType());
             }
-
-            this.intCodec.WriteField(writer, session, 1, typeof(int), value.Count);
 
             var first = true;
             foreach (var element in value)
@@ -65,7 +60,7 @@ namespace Hagar.Codecs
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
             Dictionary<TKey, TValue> result = null;
-            IEqualityComparer<TKey> comparer = null;
+            Type comparer = null;
             uint fieldId = 0;
             while (true)
             {
@@ -75,15 +70,14 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        comparer = this.ecCodec.ReadValue(reader, session, header);
+                        comparer = this.typeCodec.ReadValue(reader, session, header);
                         break;
                     case 1:
-                        var size = this.intCodec.ReadValue(reader, session, header);
-                        result = this.activator.Create(ValueTuple.Create(comparer ?? EqualityComparer<TKey>.Default, size));
-                        ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
-                        break;
-                    case 2:
-                        if (result == null) ThrowLengthFieldMissing();
+                        if (result == null)
+                        {
+                            result = CreateInstance(comparer, session, placeholderReferenceId);
+                        }
+
                         var pair = this.pairCodec.ReadValue(reader, session, header);
                         // ReSharper disable once PossibleNullReferenceException
                         result.Add(pair.Key, pair.Value);
@@ -97,9 +91,24 @@ namespace Hagar.Codecs
             return result;
         }
 
+        private Dictionary<TKey, TValue> CreateInstance(Type equalityComparerType, SerializerSession session, uint placeholderReferenceId)
+        {
+            IEqualityComparer<TKey> comparer;
+            if (equalityComparerType != null)
+            {
+                comparer = (IEqualityComparer<TKey>)Activator.CreateInstance(equalityComparerType);
+            }
+            else
+            {
+                comparer = null;
+            }
+
+            var result = this.activator.Create(comparer);
+            ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
+            return result;
+        }
+
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
-
-        private static void ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized object is missing its length field.");
     }
 }

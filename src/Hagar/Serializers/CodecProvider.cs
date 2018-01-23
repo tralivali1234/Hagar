@@ -57,12 +57,6 @@ namespace Hagar.Serializers
 
                 foreach (var fieldCodec in metadataCollection)
                 {
-                    if (fieldCodec.IsGenericType && fieldCodec.GetGenericArguments().Length != 1)
-                    {
-                        //TODO: throw / log
-                        continue;
-                    }
-
                     foreach (var iface in fieldCodec.GetInterfaces())
                     {
                         if (!iface.IsGenericType) continue;

@@ -12,14 +12,14 @@ namespace Hagar.Codecs
     /// Codec for <see cref="List{T}"/>.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    internal class ListCodec<T> : IFieldCodec<List<T>>
+    public class ListCodec<T> : IFieldCodec<List<T>>
     {
         private readonly IFieldCodec<T> fieldCodec;
         private readonly IFieldCodec<int> intCodec;
         private readonly IUntypedCodecProvider codecProvider;
-        private readonly IActivator<int, List<T>> activator;
+        private readonly ListActivator<T> activator;
 
-        public ListCodec(IFieldCodec<T> fieldCodec, IFieldCodec<int> intCodec, IUntypedCodecProvider codecProvider, IActivator<int, List<T>> activator)
+        public ListCodec(IFieldCodec<T> fieldCodec, IFieldCodec<int> intCodec, IUntypedCodecProvider codecProvider, ListActivator<T> activator)
         {
             this.fieldCodec = fieldCodec;
             this.intCodec = intCodec;
