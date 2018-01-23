@@ -20,6 +20,8 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
             this.valueCodec.WriteField(writer, session, 0, typeof(T), value.Item1);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -72,6 +74,8 @@ namespace Hagar.Codecs
 
             this.item1Codec.WriteField(writer, session, 0, typeof(T1), value.Item1);
             this.item2Codec.WriteField(writer, session, 1, typeof(T2), value.Item2);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -134,6 +138,8 @@ namespace Hagar.Codecs
             this.item1Codec.WriteField(writer, session, 0, typeof(T1), value.Item1);
             this.item2Codec.WriteField(writer, session, 1, typeof(T2), value.Item2);
             this.item3Codec.WriteField(writer, session, 1, typeof(T3), value.Item3);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -204,6 +210,8 @@ namespace Hagar.Codecs
             this.item2Codec.WriteField(writer, session, 1, typeof(T2), value.Item2);
             this.item3Codec.WriteField(writer, session, 1, typeof(T3), value.Item3);
             this.item4Codec.WriteField(writer, session, 1, typeof(T4), value.Item4);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3, T4> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -282,6 +290,8 @@ namespace Hagar.Codecs
             this.item3Codec.WriteField(writer, session, 1, typeof(T3), value.Item3);
             this.item4Codec.WriteField(writer, session, 1, typeof(T4), value.Item4);
             this.item5Codec.WriteField(writer, session, 1, typeof(T5), value.Item5);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3, T4, T5> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -368,6 +378,8 @@ namespace Hagar.Codecs
             this.item4Codec.WriteField(writer, session, 1, typeof(T4), value.Item4);
             this.item5Codec.WriteField(writer, session, 1, typeof(T5), value.Item5);
             this.item6Codec.WriteField(writer, session, 1, typeof(T6), value.Item6);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3, T4, T5, T6> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -462,6 +474,8 @@ namespace Hagar.Codecs
             this.item5Codec.WriteField(writer, session, 1, typeof(T5), value.Item5);
             this.item6Codec.WriteField(writer, session, 1, typeof(T6), value.Item6);
             this.item7Codec.WriteField(writer, session, 1, typeof(T7), value.Item7);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3, T4, T5, T6, T7> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -564,6 +578,8 @@ namespace Hagar.Codecs
             this.item6Codec.WriteField(writer, session, 1, typeof(T6), value.Item6);
             this.item7Codec.WriteField(writer, session, 1, typeof(T7), value.Item7);
             this.item8Codec.WriteField(writer, session, 1, typeof(T8), value.Rest);
+
+            writer.WriteEndObject();
         }
 
         public Tuple<T1, T2, T3, T4, T5, T6, T7, T8> ReadValue(Reader reader, SerializerSession session, Field field)

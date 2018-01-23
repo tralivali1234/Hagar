@@ -17,18 +17,18 @@ namespace Hagar.Codecs
     {
         private readonly IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec;
         private readonly IUntypedCodecProvider codecProvider;
-        private readonly IFieldCodec<Type> typeCodec;
+        private readonly IFieldCodec<IEqualityComparer<TKey>> comparerCodec;
         private readonly DictionaryActivator<TKey, TValue> activator;
 
         public DictionaryCodec(
             IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec,
             IUntypedCodecProvider codecProvider,
-            IFieldCodec<Type> typeCodec,
+            IFieldCodec<IEqualityComparer<TKey>> comparerCodec,
             DictionaryActivator<TKey, TValue> activator)
         {
             this.pairCodec = pairCodec;
             this.codecProvider = codecProvider;
-            this.typeCodec = typeCodec;
+            this.comparerCodec = comparerCodec;
             this.activator = activator;
         }
 
@@ -39,7 +39,7 @@ namespace Hagar.Codecs
             
             if (value.Comparer != EqualityComparer<TKey>.Default)
             {
-                this.typeCodec.WriteField(writer, session, 0, typeof(Type), value.Comparer?.GetType());
+                this.comparerCodec.WriteField(writer, session, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
             }
 
             var first = true;
@@ -60,7 +60,7 @@ namespace Hagar.Codecs
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
             Dictionary<TKey, TValue> result = null;
-            Type comparer = null;
+            IEqualityComparer<TKey> comparer = null;
             uint fieldId = 0;
             while (true)
             {
@@ -70,7 +70,7 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        comparer = this.typeCodec.ReadValue(reader, session, header);
+                        comparer = this.comparerCodec.ReadValue(reader, session, header);
                         break;
                     case 1:
                         if (result == null)
@@ -91,18 +91,8 @@ namespace Hagar.Codecs
             return result;
         }
 
-        private Dictionary<TKey, TValue> CreateInstance(Type equalityComparerType, SerializerSession session, uint placeholderReferenceId)
+        private Dictionary<TKey, TValue> CreateInstance(IEqualityComparer<TKey> comparer, SerializerSession session, uint placeholderReferenceId)
         {
-            IEqualityComparer<TKey> comparer;
-            if (equalityComparerType != null)
-            {
-                comparer = (IEqualityComparer<TKey>)Activator.CreateInstance(equalityComparerType);
-            }
-            else
-            {
-                comparer = null;
-            }
-
             var result = this.activator.Create(comparer);
             ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
             return result;

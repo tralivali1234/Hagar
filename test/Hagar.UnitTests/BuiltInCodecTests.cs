@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hagar.Codecs;
+using Hagar.ISerializable;
+using Hagar.Serializers;
 using Hagar.TestKit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Hagar.UnitTests
 {
@@ -133,6 +136,10 @@ namespace Hagar.UnitTests
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
+        protected override void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
+        }
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());

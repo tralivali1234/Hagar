@@ -24,6 +24,8 @@ namespace Hagar.Codecs
 
             this.keyCodec.WriteField(writer, session, 0, typeof(TKey), value.Key);
             this.valueCodec.WriteField(writer, session, 1, typeof(TValue), value.Value);
+
+            writer.WriteEndObject();
         }
 
         public KeyValuePair<TKey, TValue> ReadValue(Reader reader, SerializerSession session, Field field)
@@ -44,7 +46,7 @@ namespace Hagar.Codecs
                     case 0:
                         key = this.keyCodec.ReadValue(reader, session, header);
                         break;
-                    case 2:
+                    case 1:
                         value = this.valueCodec.ReadValue(reader, session, header);
                         break;
                     default:
