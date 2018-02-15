@@ -59,6 +59,6 @@ namespace Hagar.Codecs
         }
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 }
