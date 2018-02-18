@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Hagar\Hagar.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.0" />
+  </ItemGroup>
+
 </Project>
