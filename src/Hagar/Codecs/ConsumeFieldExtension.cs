@@ -1,3 +1,4 @@
+using System;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -6,20 +7,20 @@ using Hagar.WireProtocol;
 namespace Hagar.Codecs
 {
     /// <summary>
-    /// Marker object used to denote an unknown field and its offset into a stream of data.
+    /// Marker object used to denote an unknown field and its position into a stream of data.
     /// </summary>
     public class UnknownFieldMarker
     {
-        public UnknownFieldMarker(Field field, int offset)
+        public UnknownFieldMarker(Field field, SequencePosition position)
         {
             this.Field = field;
-            this.Offset = offset;
+            this.Position = position;
         }
 
         /// <summary>
-        /// The offset into the stream at which this field occurs.
+        /// The position into the stream at which this field occurs.
         /// </summary>
-        public int Offset { get; }
+        public SequencePosition Position { get; }
 
         /// <summary>
         /// The field header.
@@ -29,7 +30,7 @@ namespace Hagar.Codecs
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"[{nameof(UnknownFieldMarker)}] {nameof(this.Offset)}: {this.Offset}, {nameof(this.Field)}: {this.Field}";
+            return $"[{nameof(UnknownFieldMarker)}] {nameof(this.Position)}: {this.Position}, {nameof(this.Field)}: {this.Field}";
         }
     }
 
@@ -41,7 +42,7 @@ namespace Hagar.Codecs
             if (referencedObject is UnknownFieldMarker marker)
             {
                 var result = new Reader(reader.GetBuffers());
-                result.Advance(marker.Offset);
+                result.Advance(marker.Position);
                 return result;
             }
         }*/

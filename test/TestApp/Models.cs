@@ -111,7 +111,7 @@ namespace MyPocos
             await runtime.InvokeRequest(id, buffers);
 
             // Deserialize payload into return type & return result
-            return this.intCodec.ReadValue(null, null, null);
+            return 0;// this.intCodec.ReadValue(null, null);
         }
     }
 }

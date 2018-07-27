@@ -38,8 +38,12 @@ namespace Hagar.Codecs
                 }
 
                 case WireType.Fixed128:
-                    // Decimal has a smaller range, but higher precision than float.
-                    return (float) reader.ReadDecimal();
+                    // TODO: Reimplement
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+                
+                // Decimal has a smaller range, but higher precision than float.
+                //return (float) reader.ReadDecimal();
 
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
@@ -78,7 +82,10 @@ namespace Hagar.Codecs
                 case WireType.Fixed64:
                     return reader.ReadDouble();
                 case WireType.Fixed128:
-                    return (double) reader.ReadDecimal();
+                    // TODO: Reimplement
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+                    //return (double) reader.ReadDecimal();
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
                     return 0;
@@ -124,7 +131,10 @@ namespace Hagar.Codecs
                     return (decimal) value;
                 }
                 case WireType.Fixed128:
-                    return reader.ReadDecimal();
+                    // TODO: Reimplement
+                    ThrowWireTypeOutOfRange(field.WireType);
+                    return 0;
+                    //return (double) reader.ReadDecimal();
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
                     return 0;
