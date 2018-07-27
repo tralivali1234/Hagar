@@ -4,24 +4,17 @@ using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
-
-    /// <summary>
-    /// Reader for Orleans binary token streams
-    /// </summary>
     public class Reader
     {
-        private ReadOnlySequence<byte> input;
+        private readonly ReadOnlySequence<byte> input;
         private SequencePosition position;
         
         private static readonly byte[] EmptyByteArray = new byte[0];
-
-        /// <summary>
-        /// Create a new BinaryTokenStreamReader to read from the specified input byte array.
-        /// </summary>
-        /// <param name="input">Input binary data to be tokenized.</param>
+        
         public Reader(ReadOnlySequence<byte> input) : this(input, input.Start)
         {
         }
@@ -31,13 +24,9 @@ namespace Hagar.Buffers
             this.input = input;
             this.position = position;
         }
-
-        /// <summary> Current read position in the stream. </summary>
+        
         public SequencePosition CurrentPosition => this.position;
-
-        /// <summary>
-        /// Gets the total length.
-        /// </summary>
+        
         public long Length => this.input.Length;
         
         public byte ReadByte()
@@ -48,7 +37,7 @@ namespace Hagar.Buffers
                 return readOnly[0];
             }
 
-            ThrowBad();
+            ThrowInsufficientData();
             return 0;
         }
 
@@ -68,8 +57,6 @@ namespace Hagar.Buffers
 
         public void Reset() => this.position = this.input.Start;
 
-        /// <summary> Read an <c>Int32</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public int ReadInt()
         {
             const int width = 4;
@@ -93,12 +80,12 @@ namespace Hagar.Buffers
         {
             if (!this.input.TryGet(ref this.position, out var mem, advance: false))
             {
-                ThrowBad();
+                ThrowInsufficientData();
             }
 
             if (mem.Length < length) return default;
             
-            // Return a span which is probably longer
+            // Return a span which is probably longer than requested.
             Advance(length);
             return mem.Span;
         }
@@ -115,16 +102,14 @@ namespace Hagar.Buffers
                 if (indexInSpan == span.Length) return;
             }
 
-            ThrowBad();
+            ThrowInsufficientData();
         }
 
-        private static void ThrowBad()
+        private static void ThrowInsufficientData()
         {
-            throw new InvalidOperationException("fdfdfdf");
+            throw new InvalidOperationException("Insufficient data present in buffer.");
         }
 
-        /// <summary> Read an <c>UInt32</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public uint ReadUInt()
         {
             const int width = 4;
@@ -144,8 +129,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>Int16</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public short ReadShort()
         {
             const int width = 2;
@@ -165,8 +148,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>UInt16</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public ushort ReadUShort()
         {
             const int width = 2;
@@ -186,8 +167,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>Int64</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public long ReadLong()
         {
             const int width = 8;
@@ -207,8 +186,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>UInt64</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public ulong ReadULong()
         {
             const int width = 8;
@@ -228,8 +205,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>float</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public float ReadFloat()
         {
             const int width = 4;
@@ -249,8 +224,6 @@ namespace Hagar.Buffers
             }
         }
 
-        /// <summary> Read an <c>double</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public double ReadDouble()
         {
             const int width = 4;
@@ -270,17 +243,21 @@ namespace Hagar.Buffers
             }
         }
 
+        public decimal ReadDecimal()
+        {
+            var parts = new[] { ReadInt(), ReadInt(), ReadInt(), ReadInt() };
+            return new decimal(parts);
+        }
+
         public DateTime ReadDateTime()
         {
             var n = this.ReadLong();
-            return n == 0 ? default(DateTime) : DateTime.FromBinary(n);
+            return n == 0 ? default : DateTime.FromBinary(n);
         }
 
-        /// <summary> Read an <c>string</c> value from the stream. </summary>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public string ReadString()
         {
-            var n = this.ReadInt();
+            var n = this.ReadVarInt32();
             if (n == 0)
             {
                 return string.Empty;
@@ -316,9 +293,6 @@ namespace Hagar.Buffers
             return s;
         }
 
-        /// <summary> Read the next bytes from the stream. </summary>
-        /// <param name="count">Number of bytes to read.</param>
-        /// <returns>Data from current position in stream, converted to the appropriate output type.</returns>
         public byte[] ReadBytes(int count)
         {
             if (count == 0)

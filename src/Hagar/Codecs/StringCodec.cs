@@ -36,7 +36,7 @@ namespace Hagar.Codecs
             // TODO: use Span<byte>
             var bytes = Encoding.UTF8.GetBytes(value);
             writer.WriteVarInt((uint)bytes.Length);
-            writer.Write(bytes);
+            writer.Write(value);
         }
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
