@@ -60,7 +60,7 @@ namespace Hagar.Utilities
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return reader.ReadVarUInt64();
+                    return reader.ReadVarUInt32();
                 case WireType.Fixed32:
                     return reader.ReadUInt32();
                 case WireType.Fixed64:
@@ -124,7 +124,7 @@ namespace Hagar.Utilities
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return ZigZagDecode(reader.ReadVarUInt64());
+                    return ZigZagDecode(reader.ReadVarUInt32());
                 case WireType.Fixed32:
                     return reader.ReadInt32();
                 case WireType.Fixed64:

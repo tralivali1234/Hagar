@@ -25,7 +25,7 @@ namespace Hagar.Codecs
             switch (field.WireType)
             {
                 case WireType.VarInt:
-                    reader.ReadVarUInt64();
+                    reader.ReadVarUInt32();
                     break;
                 case WireType.TagDelimited:
                     // Since tag delimited fields can be comprised of other fields, recursively consume those, too.

@@ -2,27 +2,26 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using Hagar.Utilities;
 
 namespace Hagar.TypeSystem
 {
     internal class CachedTypeResolver : ITypeResolver
     {
         private readonly ConcurrentDictionary<string, Type> typeCache = new ConcurrentDictionary<string, Type>();
-        private readonly CachedReadConcurrentDictionary<string, Assembly> assemblyCache = new CachedReadConcurrentDictionary<string, Assembly>();
+        private readonly ConcurrentDictionary<string, Assembly> assemblyCache = new ConcurrentDictionary<string, Assembly>();
 
         /// <inheritdoc />
         public Type ResolveType(string name)
         {
             if (this.TryResolveType(name, out var result)) return result;
 
-            throw new TypeAccessException(string.Format("Unable to find a type named {0}", name));
+            throw new TypeAccessException($"Unable to find a type named {name}");
         }
 
         /// <inheritdoc />
         public bool TryResolveType(string name, out Type type)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("A FullName must not be null nor consist of only whitespace.", "name");
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("A FullName must not be null nor consist of only whitespace.", nameof(name));
             if (this.TryGetCachedType(name, out type)) return true;
             if (!this.TryPerformUncachedTypeResolution(name, out type)) return false;
 
@@ -35,7 +34,7 @@ namespace Hagar.TypeSystem
             IEnumerable<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies();
             if (!this.TryPerformUncachedTypeResolution(name, out type, assemblies)) return false;
 
-            if (type.Assembly.ReflectionOnly) throw new InvalidOperationException(string.Format("Type resolution for {0} yielded reflection-only type.", name));
+            if (type.Assembly.ReflectionOnly) throw new InvalidOperationException($"Type resolution for {name} yielded reflection-only type.");
 
             return true;
         }
@@ -54,8 +53,8 @@ namespace Hagar.TypeSystem
 
         private bool TryPerformUncachedTypeResolution(string fullName, out Type type, IEnumerable<Assembly> assemblies)
         {
-            if (null == assemblies) throw new ArgumentNullException("assemblies");
-            if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("A type name must not be null nor consist of only whitespace.", "fullName");
+            if (null == assemblies) throw new ArgumentNullException(nameof(assemblies));
+            if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("A type name must not be null nor consist of only whitespace.", nameof(fullName));
 
             foreach (var assembly in assemblies)
             {

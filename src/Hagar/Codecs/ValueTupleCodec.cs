@@ -21,7 +21,7 @@ namespace Hagar.Codecs
             if (field.WireType != WireType.VarInt) ThrowUnsupportedWireTypeException(field);
 
             ReferenceCodec.MarkValueField(session);
-            reader.ReadVarUInt64();
+            reader.ReadVarUInt32();
 
             return default;
         }

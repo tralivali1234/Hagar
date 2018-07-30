@@ -295,18 +295,13 @@ namespace Hagar.Codecs
                 else
                 {
                     writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
-                    writer.WriteVarInt(value);
+                    writer.WriteVarInt((int)value);
                 }
-            }
-            else if (value > 1 << 41 || -value > 1 << 41)
-            {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed64);
-                writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed64);
+                writer.Write(value);
             }
         }
 
@@ -347,18 +342,13 @@ namespace Hagar.Codecs
                 else
                 {
                     writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
-                    writer.WriteVarInt(value);
+                    writer.WriteVarInt((uint)value);
                 }
-            }
-            else if (value > 1 << 41)
-            {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed64);
-                writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed64);
+                writer.Write(value);
             }
         }
 

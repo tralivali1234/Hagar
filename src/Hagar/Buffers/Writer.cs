@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
@@ -178,6 +179,31 @@ namespace Hagar.Buffers
             this.EnsureContiguous(width);
             BinaryPrimitives.WriteUInt64LittleEndian(this.WritableSpan, value);
             this.bufferPos += width;
+        }
+        
+        private static readonly byte[] WriteMask =
+        {
+            0b00000000,
+            0b10000000,
+            0b11000000,
+            0b11100000,
+            0b11110000,
+            0b11111000,
+            0b11111100,
+            0b11111110,
+            0b11111111,
+        };
+
+        public void WriteVarInt(uint value)
+        {
+            var numBytes = PrefixVarIntHelpers.CountRequiredBytes(value);
+            this.EnsureContiguous(numBytes);
+            var destination = this.WritableSpan;
+            var shunt = PrefixVarIntHelpers.WriteShuntForFiveByteValues(value);
+            BinaryPrimitives.WriteUInt32BigEndian(destination.Slice(shunt), value << ((4 + shunt - numBytes) * 8));
+
+            destination[0] |= WriteMask[numBytes - 1];
+            this.bufferPos += numBytes;
         }
     }
 }

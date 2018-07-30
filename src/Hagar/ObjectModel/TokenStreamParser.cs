@@ -29,7 +29,7 @@
                     switch (field.WireType)
                     {
                         case WireType.VarInt:
-                            yield return $"[VarInt: {reader.ReadVarUInt64():X}]";
+                            yield return $"[VarInt: {reader.ReadVarUInt32():X}]";
                             break;
                         case WireType.TagDelimited:
                             ++objectDepth;

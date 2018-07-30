@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
-using Hagar.Utilities;
 
 namespace Hagar.TypeSystem
 {
@@ -14,8 +14,7 @@ namespace Hagar.TypeSystem
         private static readonly Assembly SystemAssembly = typeof(int).GetTypeInfo().Assembly;
         private static readonly char[] SimpleNameTerminators = { '`', '*', '[', '&' };
 
-        private static readonly CachedReadConcurrentDictionary<TypeInfo, string> Cache =
-            new CachedReadConcurrentDictionary<TypeInfo, string>();
+        private static readonly ConcurrentDictionary<TypeInfo, string> Cache = new ConcurrentDictionary<TypeInfo, string>();
 
         /// <summary>
         /// Returns a <see cref="string"/> form of <paramref name="type"/> which can be parsed by <see cref="Type.GetType(string)"/>.

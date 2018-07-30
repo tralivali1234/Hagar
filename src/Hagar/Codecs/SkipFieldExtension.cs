@@ -29,7 +29,7 @@ namespace Hagar.Codecs
             {
                 case WireType.Reference:
                 case WireType.VarInt:
-                    reader.ReadVarUInt64();
+                    reader.ReadVarUInt32();
                     break;
                 case WireType.TagDelimited:
                     SkipTagDelimitedField(ref reader, session);

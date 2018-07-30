@@ -46,6 +46,7 @@ namespace Benchmarks
     [MemoryDiagnoser]
     public class ComplexTypeBenchmarks
     {
+        private static readonly SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer();
         private readonly Serializer<SimpleStruct> structSerializer;
         private readonly Serializer<ComplexClass> hagarSerializer;
         private readonly SessionPool sessionPool;
@@ -128,8 +129,6 @@ namespace Benchmarks
             this.structSerializer.Deserialize(session, ref reader);
             HagarBuffer.Reset();
         }
-        
-        private static readonly SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer();
 
         [Benchmark]
         public SimpleStruct HagarStructRoundTrip()
@@ -207,7 +206,7 @@ namespace Benchmarks
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));
         }
 
-        //[Benchmark]
+        [Benchmark]
         public int HagarReadEachByte()
         {
             var sum = 0;
